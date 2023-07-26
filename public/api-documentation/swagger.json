@@ -4,7 +4,7 @@
     "version": "0.0.0",
     "title": "Fullteam"
   },
-  "host": "192.168.1.101:3000",
+  "host": "ec2-3-10-51-119.eu-west-2.compute.amazonaws.com",
   "basePath": "/",
   "schemes": [
     "http"

@@ -2,9 +2,9 @@
  * @file Helper functions for ajax requests.
  */
 
-const BASE_URL = "http://127.0.0.1";
+const BASE_URL = "http://ec2-3-10-51-119.eu-west-2.compute.amazonaws.com";
 const APP_PORT = 3000;
-const WEB_PORT = "3000";
+const WEB_PORT = "";
 
 /**
  * Performs and AJAX request, returning the response as a promise.
