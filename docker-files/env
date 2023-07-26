@@ -1,0 +1,3 @@
+FULLTEAM_BASE_URL=http://localhost.fullteamfootball.com:3000/
+FULLTEAM_WS_SSL_KEY=/usr/src/app/keys/server.key
+FULLTEAM_WS_SSL_CERT=/usr/src/app/keys/server.crt

@@ -1,0 +1,7 @@
+--timeout 600000
+--recursive
+--require test/bootstrap.js
+--require test/support/common
+--require test/support/node
+test/support/setup.js
+test

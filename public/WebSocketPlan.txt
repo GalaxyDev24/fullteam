@@ -1,0 +1,2064 @@
+NOTE: FOR WEB DEVELOPERS!
+
+NONE OF THIS DATA RETURNING FROM THIS SERVER IS SAFE
+
+DON'T JUST BE DISPLAYIN' WILLY NILLY
+
+Port for communication is 8080. Connect to the server via socket_connect.
+The WS URL will look something like this:
+ws://<ServerIP>:8080/socket_connect
+No SSL yet (wss), but WILL be implemented in the future, so leave your code open for
+that.
+
+Note to future self: Server stores list of venues
+
+Structure of message:
+  2 Bytes Cmd
+  2 Bytes Opts (Keep as 0 unless specified otherwise)
+  4 Bytes Random ID, Response packet will have same ID as request
+  4 Bytes Length of data (in bytes)
+  N Bytes Data (Specific to Cmd)
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------A few IMPORTANT things to consider:------
+* Any request other than login and register can ALWAYS return an error in the
+* case that the websocket connection is not authenticated. It will be in this
+* format: --- Cmd: -1 Response Data: Description (String) --- so you should
+* check every message received for a CMD of -1.
+
+* All data should be contained within a single json object. Multiple objects
+* may be nested inside here, but 1 object must wrap everything.
+
+* Every string is a UTF-8 string, unless stated otherwise. Make sure to
+* explicitly declare your encoding in the code, because different hardware can
+* default to different encodings.
+
+* If you notice anything odd about this spec, do tell me, it's probably a
+* mistake.
+
+* Raw numbers are BIG endian!  In addition to this, they need to be signed!
+* Java doesn't really support unsigned values (should only really matter for
+* lengths).
+
+* IMPORTANT: If a JSON field is not needed for the request, then don't include
+* it at all! Including a null field or an empty string for a field can mess up
+* the JSON parsing on the server!
+
+* Unless specified otherwise, all parameters needed MUST be included in the
+* request.
+
+* Make sure to parse JSON numbers as the largest possible value for your
+* system! (8 bits for numbers)
+
+* ALL TIMESTAMPS ARE CURRENT SYSTEM TIME IN MILLISECONDS, NOT SECONDS SINCE EPOCH!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Command numbers used: -1, 0, 2, 3, 4, 5, 6, 7, 8, 9
+
+Flags:
+  16th bit: Set to 1 if packet is a response.
+    
+
+Types of messages:
+  ---LOGIN (Request/Response)---
+    Cmd: 00
+    Request Data:
+      -LoginType (Integer, 0 for normal, 1 for Facebook login)
+      Facebook Logins:
+        -FacebookAccessToken (String)
+      Normal Logins:
+          First Time:
+            -Email (String)
+            -Password (String)
+          Second Time:
+            -LoginToken (String)
+    Response Data:
+      -Success (Integer, 0 for success, 1 for bad login, 2 for invalid
+        token, 3 for server error)
+      Success:
+        -UserID (Long Integer)
+        Normal Logins:
+          -LoginToken (String)
+      Server Error:
+        -Description (String)
+    Notes:
+    When using a normal logins (with username and password), the server
+    returns a long lasting API token which can be used for future logins.
+    Server wise, this token cannot be a JWT, and we need to be able to 
+    manually expire it.
+    If a user logs in with username and password instead of the login token
+    when they should have used a login token, a NEW login token will be created,
+    and the old one disposed of. This is to cover for situations where the
+    user accidentally disconnects during login and doesn't receive the first token.
+
+  ---REGISTER (Request/Response)---
+    Cmd: 10
+    Request Data:
+      -RegistrationType (Integer, 0 for normal, 1 for Facebook registration, 2 for Twitter registration)
+      -Email (String)
+      -Positions (Array of integers, see notes)
+      -Gender (Integer, ISO/IEC_5218, 0 = unknown, 1 = male, 2 = female, 9 = n/a)
+      -Age (Integer)
+      -MobileNumber (String, Optional)
+      Facebook Registration:
+        -FacebookAccessToken (String)
+      Twitter Registration:
+        -TwitterAccessToken (String)
+        -TwitterAccessTokenSecret (String)
+        -Birthday (String, format DDMMYYYY, optional)
+      Normal Registration:
+        -Password (String)
+        -FirstName (String)
+        -LastName (String)
+        -Birthday (String, format DDMMYYYY, optional)
+        -PictureData (Base 64, optional)
+    Response Data:
+      -Success (Integer, 0 for success, 1 for server error, 2 for email
+        already exists)
+      Server Error:
+        -Description (String)
+    Notes:
+    Registration does NOT log you in straight away! You need to wait for a
+    success then use the log in request.
+    Doesn't return user's settings. This is because you don't need it - if we
+    really want to change it in future, we can implement a getUserSettings message
+    type. Default values should be hard coded as: 
+      Comment         = ON
+      Notifications   = ON
+      Searchable      = ON
+      Search Distance = 20
+    Twitter registration will only pull picture data and name. All
+    other data needs to be provided.
+    If facebook does not allow a birthday to be retrieved, then the value of the
+    birthday will be set to '0'. You should check for this string, and if it 
+    matches exactly, display something like 'no birthday given'.
+    In the case that the client doesn't provide a birthday, one can be provided 
+    externally through the 'ChangeBirthday' message (CMD 10)
+    Position are as follows:
+    0 = Goalkeeper
+    1 = Defence
+    2 = Midfield
+    3 = Striker
+    
+    
+  ---SEND LOCATION---       
+    Cmd: 20
+    Request Data:
+      -Latitude (Double)
+      -Longitude (Double)
+      -Locality (String)
+      -Country (String)
+    Response Data:
+      -Success (Integer, 0 for success, 1 for server error)
+      Server Error:
+        -Description (String)
+    Notes:
+    Make sure you sync up the names of localities and countries
+    between the two apps. Alternatively, I could look up ways for the server
+    to get the names of localities from lat and lon values - but the front end 
+    is already coded for this, so there might not be any point.
+
+  ---SEND SETTINGS---       
+    Cmd: 30
+    Request Data:
+      -CommentsAllowed (Boolean)
+      -NotificationsAllowed (Boolean)
+      -Searchable (Boolean)
+    Response Data:
+      -Success (Integer, 0 for success, 1 for server error)
+      Server Error:
+        -Description (String)
+    Notes:
+    No more search distance, requested by Luke.
+
+  ---GET SETTINGS---       
+    Cmd: 35
+    Request Data:
+      None!
+    Response Data:
+      -
+      Success:
+        -CommentsAllowed (Boolean)
+        -NotificationsAllowed (Boolean)
+        -Searchable (Boolean)
+      Server Error:
+        -Description (String)
+    Notes:
+
+  ---GET PROFILE---         
+    Cmd: 40
+    Request Data:
+      -UserID (Integer)
+    Response Data:
+      -Success (1 byte, 0 for success, 1 for server error)
+      Success:
+        -Email
+        -Positions (Array of Integers)
+        -FirstName (String)
+        -LastName (String)
+        -PictureURL (String)
+        -CoverPictureURL (String)
+        -Birthday (String, format DDMMYYYY)
+        -AveragePassing ( float)
+        -AverageShooting ( float)
+        -AverageFitness ( float)
+        -AverageReliability ( float)
+        -AverageRating ( float)
+        -Locality (String)
+        -Country (String)
+        -AlreadyRated (Boolean)
+        -CommentsAllowed (Boolean)
+        if CommentsAllowed:
+          -Feedbacks (JSON Array of objects): 
+          Feedback Object:
+            -FirstName (String)
+            -LastName (String)
+            -FromUser (Integer)
+            -TimeSent (Integer timestamp)
+            -Passing (Float)
+            -Shooting (Float)
+            -Fitness (Float)
+            -Reliability (Float)
+            -AverageRating (Float)
+            -FeedbackMessage (String)
+            -PictureURL (String)
+      Server Error:
+        -Description (String)
+    Notes:
+    Birthday parameter will NOT be there if the user hasn't given a
+    valid birthday at registration, or updated it in the future.
+    Cover picture URLs aren't always set - if they aren't, the value
+    of the string will be 'Unspecified'. You should check for this and
+    display a default image instead.
+
+-----------------------------------------------------------
+                    REGIONAL RANKINGS
+-----------------------------------------------------------
+  <PLAYER_RANKING_OBJECT>
+    -UserID (Integer)
+    -FirstName (String)
+    -LastName  (String)
+    -PictureURL (String)
+    -Rating (Double)
+  Notes:
+    If nobody has rated this user, rating = -1
+
+  ---GET RANKINGS---
+    Cmd: 45
+    Request Data:
+      -UserID (Integer)
+    Response Data:
+      -Success (Integer)
+      Success:
+        -Leaderboard (JSON Array of PLAYER_RANKING_OBJECT)
+      Server Error:
+        -Description (String)
+-----------------------------------------------------------
+
+
+  ---GET USER DATA---   
+    Cmd: 50
+    Request Data:
+      *none* (empty JSON object must be sent)
+    Response Data:
+      -Success (1 byte, 0 for success, 1 for server error)
+      Success:
+        -Email (String)
+        -Birthday (String)
+        -PictureURL (String)
+      Server Error:
+        -Description (String)
+
+  ---UPDATE USER DATA---      
+    Cmd: 60
+    Request Data:
+      -FirstName (String)
+      -LastName (String)
+      -Email (String)
+      -Birthday (String)
+      -Picture (String)
+      -CoverPicture (String)
+    Response Data:
+      -Success (1 byte, 0 for success, 1 for server error)
+      Server Error:
+        -Description (String)
+    Notes:
+    No longer required to specify whether this is a facebook login - I can
+    detect it very easily based on your connection.
+    'Picture' is a base64 string, just like a standard login. Allowing a 
+    facebook user to upload their own base64 encoded image should be fine too, 
+    and the URL will be changed to that picture. However, there is currently no 
+    way to revert back to the facebook picture, so if this functionality is 
+    desired we need a new message type to revert, or a rethink of the current 
+    system.
+    Cover picture is just like picture, but by default cover picture
+    is always null to start with, so this is the only way to set cover
+    picture's value
+    You don't need all of the parameters for this request! Just send whichever 
+    ones you need.
+
+  ---SEARCH PLAYERS---      
+    Cmd: 70
+    Request Data:
+      -SearchDistance (Integer)
+    Response Data:
+      -Success (1 byte, 0 for success, 1 for server error)
+      Success:
+        -UserList (Json Array of objects)
+        UserList Item:
+          -UserID (Integer)
+          -Position (Integer)
+          -Latitude (Float)
+          -Longitude (Float)
+          -FirstName (String)
+          -LastName (String)
+          -PictureURL (String)
+          -AverageRating (Float)
+          -Distance (Float)
+          -Online (Boolean)
+          -LastActive (Integer)
+          -Age (Integer)
+      Server Error:
+        -Description (String)
+
+  ---SEARCH PLAYER BY NAME---
+    Cmd: 75
+    Request Data:
+      -Name (String)
+    Response Data:
+      -Success (1 byte, 0 for success, 1 for server error)
+      Success:
+        -UserList (Json Array of objects)
+        UserList Item:
+          -UserID (Integer)
+          -Position (Integer)
+          -FirstName (String)
+          -LastName (String)
+          -Latitude (Float)
+          -Longitude (Float)
+          -PictureURL (String)
+          -AverageRating (Float)
+          -Distance (Float)
+          -Online (Boolean)
+          -LastActive (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    Quite intensive on database, so don't call this ALL the time. 
+    This will return your profile if searched - it would be quite annoying to
+    eliminate this result server side, so it's probably better that you just
+    don't display it if you don't need it.
+    Returns 8 results. I can change this number if you wish.
+
+
+  ---RATE USER---           
+    Cmd: 80
+    Request Data:
+      -UserID (Integer)
+      -Passing (float)
+      -Shooting (float)
+      -Fitness (float)
+      -Reliability (float)
+      -FeedbackMessage (String)
+    Response Data:
+      -Success (Integer, 0 for success, 1 for server error)
+      Server Error:
+        -Description (String)
+
+  ---RATE TEAM---
+    Cmd: 85
+    Request Data:
+      -TeamID (Integer)
+      -Sportsmanship (Float)
+      -Teamwork (Float)
+      -Fitness (Float)
+      -Reliability (Float)
+      -FeedbackMessage (String)
+    Response Data:
+      -Success (Integer, 0 for success, 1 for server error)
+      Server Error:
+        -Description (String)
+
+  ---GET RATING---      
+    Cmd: 90
+    Request Data:
+      -UserID (8 bytes)
+    Response Data:
+      -PictureURL (String)
+      -FirstName (String)
+      -LastName (String)
+      -Passing (Float)
+      -Shooting (Float)
+      -Fitness (Float)
+      -Reliability (Float)
+      -AverageRating (Float)
+      -FeedbackMessage (String)
+    Notes:
+        This gets rating info from a specific user.
+
+  ---GET TEAM RATINGS---      
+    Cmd: 95
+    Request Data:
+      -UserID (8 bytes)
+    Response Data:
+      -Feedbacks (Json array)
+      FeedbackObjects
+        -PictureURL (String)
+        -FirstName (String)
+        -LastName (String)
+        -Banter (Float)
+        -Teamwork (Float)
+        -Fitness (Float)
+        -Reliability (Float)
+        -AverageRating (Float)
+        -FeedbackMessage (String)
+    Notes:
+        This gets all ratings for a team. Bit of API inconsistency
+        with GET RATING as we return an array here, but it seems to
+        make sense.
+
+  ---SET BIRTHDAY---
+    Cmd: 100
+    Request Data:
+      -Birthday (String, format DDMMYYYY)
+    Response Data:
+      -Success (1 byte, 0 for success, 1 for server error)
+      Server Error:
+        -Description (String)
+    Notes:
+    We need this message because the facebook user may not allow the server to 
+    get birthday info. If this happens, we need a web to set birthday separately 
+    later on. Client side, if you detect that the user hasn't stored their birthday 
+    (through requesting profile) then maybe provide a GUI to input the birthday on 
+    the profile page. Alternatively, just hide the setting somewhere in the menus, 
+    and display 'birthday not given' when a user's birthday is not detected.  
+      
+
+  ---ADD GCM ID---          
+    Cmd: 110
+    Request data:
+      GCMID (String)
+      DeviceID (Integer)
+    Response Data:
+      -Success (1 byte, 0 for success, 1 for server error)
+      Server Error:
+        -Description (String)
+    Notes:
+    DeviceID is which platform you're running on, android or iOS:
+    android = 1
+    iOS     = 2
+    Not including a DeviceID param will assume 0 (no device, web app?)
+
+  ---BLOCK USER---
+    Cmd: 120
+    Request data:
+      UserID (Integer)
+    Response Data:
+      -Success (Integer 0 for success, 1 for server error, 2 for already blocked)
+      Server Error:
+        -Description (String)
+    Notes:
+    All effects of blocking users are mutual (they can't message you,
+    you can't message them).
+
+======================================================
+                        GAMES
+======================================================
+
+NOTES ON CREATING GAMES:
+  The method of game creation and inviting has changed. You now have to
+  explicitly create a game, then invite people to that game ID. Whilst this
+  does require more requests to achieve the same goals, the readability and
+  ease of understanding the API that this achieves far outweighs 1 extra
+  request.
+
+  There are 3 types of games, one of them is the private game:
+    A private game, is the one that is created when inviting other users to
+    play. You don't need to specify any open positions, as the only users who can
+    play in this game have already been invited.
+
+  2 Types of public game:
+    Normal public games require a list of positions needed to be specified. A
+      player can 'apply' to one of these positions, and the owner will get a
+      notification. They will then be able to accept or reject that player.
+      Each game will have a list of 'positions' available to be played. These
+      positions can be stored as a JSON object. It will indicate the position that
+      the player is required to play. Multiple of the same open positions (2
+      midfielders, for example) will come as 2 distinct JSON objects. This allows for
+      more flexibility in the future.
+      Once a position has been applied for and approved, it will be removed from this
+      list of available positions. The game will then be added to a different list,
+      one which tracks all the positions currently applied for. We might not need 
+      this information, so I can remove it from being sent to save bandwidth if so.
+      This list of objects will be nearly identical to the list which described the
+      'open' positions in a match, but will also contain the ID of the user who took
+      the position. 
+    'Turn up and play' games are relatively new (were to me, anyway) and
+      don't require an application from a player to join, and nor to they
+      require a list of positions open to be specified. Only a maximum amount
+      of players needs to be specified for this.
+    An integer will be required for all public games to specify what type of
+    application the game requires.
+
+  The game's venue will be an integer, which can be retrieved using the 'GET VENUES'
+  message. If a custom venue is to be specified (using the map) a latitude and
+  longitude value needs to be passed to the server instead of the venue enum.
+  A boolean is also required to differentiate between these two types of venue
+  types - this is made clear in the CREATE GAME message spec below (Cmd 130).
+
+  There are also a list of optional parameters for games, which may or may not
+  be specified.
+
+  Whilst this may seem more convoluted than the last system, it is more robust
+  to client changes, and will not require awkward rewrites in the future (to the
+  same extent, anyway). I have tried to keep it as flexible as possible.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+This object describes and open position for a game.  You need to compose these
+when creating a game. However, you only need to use the 'Position' parameter
+when sending to the server. This may seem like overkill to wrap a single
+parameter in an object, but makes it easier to extend the API in future.
+REMEMBER: You only need to add the position integer when creating a game!
+
+<POSITION_OBJECT>
+  -ID (Integer ID for this position)
+  -GameID (Integer ID for the game this position belongs to)
+  -Position (Integer, see positions below)
+  -UserID (Integer user ID. Only set if a user has been accepted for this position.)
+
+POSITIONS:
+This was the old system (below). Positions should now be done based on
+the team positions system.
+//Goalkeeper: 0
+//Defense:    1
+//Midfield:   2
+//Striker:    3
+
+SURFACE_TYPE:
+NotSpecified:  -1
+Grass:          0
+3G:             1
+AstroTurf:      2
+Indoor:         3
+
+APPLICATION_TYPE:
+Standard:       0
+TurnUpAndPlay:  1
+
+  ---CREATE GAME---
+    Cmd: 130
+    Request Data:
+      <GameTime is the time at which the game will start>
+      -GameTime (Integer timestamp)
+      -HasTransport (Boolean) (Is this still needed)
+      -MeetingPlace (String, max 512 chars)
+      -Description (String)
+      -IsCustomVenue (Boolean)
+      Premade Venue:
+        -Venue (Integer, see the GET VENUES section)
+      -Lat (Float)
+      -Lon (Float)
+      -Public (Boolean)
+      -ApplicationType (Integer, see above)
+      -MaximumPlayers (Integer)
+      OPTIONAL PROPERTIES:
+        -SurfaceType (Integer, see above)
+        -AvgAbility (float between 0 and 1. Round the float to certain values 
+              depending on what string you want to display (beginner, 
+              intermediate, experienced...)
+        -AvgAge (Integer)
+        -Cost (Decimal (Don't use floating point, it's money we're dealing with)
+              which is cost per person to the owner)
+        -ShinPads (Boolean)
+    Response Data:
+      -Success (Integer)
+      ServerError:
+        -Description (String)
+      Success:
+        -GameID (Integer) 
+    Notes:
+    There is NO need to specify ANY of the optional properties. They will be
+    assigned defaults by the server, as follows:
+    SurfaceType     = NotSpecified (-1)
+    AvgAbility      = -1
+    AvgAge          = -1
+    Cost            = 0
+    ShinPads        = FALSE
+    It is perfectly fine to only specify 1 of the optional properties, but
+    not specify the others.
+    IMPORTANT: If MeetingPlace > 512 chars, I'll return an error and a
+    game won't be created. This is to avoid awkward looking cut off
+    descriptions.
+
+  ---SEARCH GAMES---        
+    Cmd: 140
+    Request Data:
+      SearchDistance (Int)
+    Response Data:
+      -Success (Integer)
+      ServerError -Description (String)
+      ServerSuccess:
+        -Games (JsonArray of objects, see object contents below)
+        GameObjects:
+          -UserID (Integer)
+          -FirstName (String)
+          -LastName (String)
+          -PictureURL (String)
+          -GameID (Integer)
+          -MeetingPlace (String)
+          -Description (String)
+          -HasTransport (Boolean)
+          -GameTime (Integer)
+          -TimeCreated (Integer)
+          -Distance (Float)
+
+          -Lat (Double)
+          -Lon (Double)
+          -IsCustomVenue (Boolean)
+          If CustomVenue:
+          Else
+            -Venue (Int)
+
+          -ApplicationType (Integer)
+          If ApplicationType = STANDARD,  (0)
+            -PositionsOpen (Json Array of POSITION_OBJECT - See above)
+            -PositionsTaken (Json Array of POSITION_OBJECT - See above)
+          Else If ApplicationType = TURN_UP_AND_PLAY (1)
+            -MaxPlayers (Integer)
+            -PlayersJoined (Integer)
+
+          // OPTIONAL PARAMETERS FOLLOW
+          -SurfaceType (Integer)
+          -AvgAbility (float)
+          -AvgAge (Integer)
+          -Cost (Decimal, 2dp)
+          -ShinPads (Boolean)
+    Notes:
+    Removed IsPublic parameter, because you're searching for a game! Every 
+    game here will be public.
+    Potentially in the future we should implement a paging system, depending
+    on how much data this is. Would have to be a bit different than the 
+    messages though, and based on distance. Any suggestions are welcome.
+    See the CREATE GAME section for the default values of optional params.
+    Alternatively I can leave out the parameter entirely if you'd prefer.
+
+  ---INVITE TO GAME---      
+    Cmd: 150
+    Request Data:
+      -GameID (Integer)
+      UserIDs (Json Array of user IDs)
+    Response Data:
+      -Success (Integer)
+      ServerError (1):
+        -Description (String)
+      AuthError (2):
+        -Description (String)
+      InvitingYourself (3):
+        -Description (String)
+      GameDoesn'tExist (10):
+        -Description (String)
+        
+    Notes: 
+    If you are not the owner of this game, you will be returned a 2, because you
+    can't invite people to a game you don't own.
+    If the game doesn't exist (past kick off time) then success = 10.
+
+
+  ---APPLY FOR GAME---      
+    Cmd: 160
+      Request Data:
+        -GameID (Integer)
+      Response Data:
+        -Success (Integer)
+        ServerError (1):
+          -Description (String)
+        GameFull (2):
+          -Description (String)
+        AlreadyApplied (3):
+          -Description (String)
+        AlreadyPlaying (4):
+          -Description (String)
+    Notes:
+    Apply for a public game. Depending on the application type of the game,
+    different things will be done:
+  * STANDARD (0): A notification will be sent to the owner, and he will have to
+    either accept or reject you for the game, at which point you will receive a
+    notification.
+  * TURN UP AND PLAY (1): You join the game instantly, and a notification is
+    sent to the owner. There is no way to pull out currently.
+    If the game is actually full when you apply, you will receive an error of 2.
+    If the game doesn't exist (past kick off time) then success = 10.
+
+  <GAME_APPLICATION_OBJECT>
+    -UserID (Integer)
+    -Positions (Json array of integers, see enum above)
+
+  ---GET GAME APPLICATIONS---
+    Cmd: 170
+      Request Data:
+        -GameID (Integer)
+      Response Data:
+        -Success (Integer)
+        ServerError (1):
+          -Description (String)
+        NoGameExists (10):
+          -Description (String)
+        Success (0):
+          -ApplicationsList (Json Array of GAME_APPLICATION_OBJECT)
+    Notes:
+    Only gets the current game applications. Ones which have already been
+    accepted or rejected will not show up.
+    If the game doesn't exist (past kick off time) then success = 10.
+
+  GAME RESPONSES:
+  REJECT = 0
+  ACCEPT = 1
+  ---RESPOND TO GAME INVITE---
+    Cmd: 180
+      Request Data:
+        -GameID (Integer)
+        -Response (Integer)
+      Response Data:
+        -Success (Integer)
+        ServerError (1):
+          -Description (String)
+    Notes:
+    For possible values of Response, see GAME RESPONSES above.
+    If the game doesn't exist (past kick off time) then success = 10.
+    
+  <GAME_INVITE_OBJECT>
+    -FromID (Integer)
+    -ToID (Integer)
+    -GameID (Integer)
+    -Time (Integer)
+  Notes:
+    FromID and ToID values are only populated for the correct related
+    requests. GET GAME INVITES will NOT have the ToID field, because that is
+    irrelevent, whereas GET INVITED TO GAME will not have FromID, because in
+    that case it is irrelevent too.
+
+  ---GET GAME INVITES RECEIVED---
+    Cmd: 190
+      Request Data:
+        None!
+      Response Data:
+        -Success (Integer)
+        ServerError (1):
+          -Description (String)
+        Success (0):
+          -InviteList (Json Array of GAME_INVITE_OBJECT)
+    Notes:
+    Only returns non-responded invites. Once you respond to an invite, it is no
+    longer included in the response to this request. If you need to get all the
+    invites ever, message me and I'll put it into a separate request.
+    This only gets game invites RECEIVED, not sent out.
+
+
+  <GAME_INVITE_OBJECT>
+    -FromID (Integer)
+    -GameID (Integer)
+    -Time (Integer)
+  ---GET INVITED TO GAME---
+    Cmd: 200
+      Request Data:
+        GameID (Integer)
+      Response Data:
+        -Success (Integer)
+        ServerError (1):
+          -Description (String)
+        AuthError (2):
+          -Description (String)
+        Success (0):
+          -InviteList (Json Array of GAME_INVITE_OBJECT)
+    Notes:
+    This is NOT the same as GET GAME INVITES - it instead gets the users which
+    YOU have invited to games (as the owner). If you're not the owner, you get
+    an AuthError (2).
+    If the game doesn't exist (past kick off time) then success = 10.
+
+  ---RESPOND TO GAME APPLICATION---
+    Cmd: 210
+    Request Data:
+      -GameID (Integer)
+      -UserID (Integer)
+      -Response (Integer)
+    Response Data:
+      -Success (Integer)
+      ServerError (1):
+        -Description (String)
+      AuthError (2):
+        -Description (String)
+    Notes:
+    ACCEPT = 1
+    REJECT = 0
+    If the game doesn't exist (past kick off time) then success = 10.
+
+  ---GET OWNED GAMES---
+    Cmd: 220
+    Request Data:
+      None!
+    Response Data:
+      -Success( Integer)
+      ServerError (1):
+        -Description
+      Success (0):
+        -Games (Json Array of GameObjects (below))
+        GameObject:
+          -GameID
+          -GameTime
+          -ApplicationType
+          -Cost
+          -MaxPlayers
+          -PlayersJoined 
+          -Distance
+          -Lat (Double)
+          -Lon (Double)
+          -IsCustomVenue (Boolean)
+          If IsCustomVenue:
+          Else
+            -Venue (Int)
+
+  ---GET JOINED GAMES---
+    Cmd: 225
+    Request Data:
+      None!
+    Response Data:
+      -Success( Integer)
+      ServerError (1):
+        -Description
+      Success (0):
+        -Games (Json Array of GameObjects (see GET OWNED GAMES))
+    Notes:
+    Only gets the games you've been accepted into.
+
+
+  ---GET GAME INFO---
+    Cmd: 230
+    Request Data:
+      GameID (Integer)
+    Response Data:
+      -Success( Integer)
+      ServerError (1):
+        -Description
+      Success (0):
+          -UserID ( Integer)
+          -FirstName (String)
+          -LastName (String)
+          -PictureURL (String)
+          -GameID (Integer)
+          -Latitude (Float)
+          -Longitude (Float)
+          -HasTransport (Boolean)
+          -GameTime (Integer)
+          -TimeCreated (Integer)
+          -Distance (Float)
+          -MeetingPlace (String)
+          -Description (String)
+
+          -IsCustomVenue (Boolean)
+          If CustomVenue:
+          Else
+            -Venue (Int)
+
+          -ApplicationType (String)
+          -MaxPlayers (Integer)
+          -PlayersJoined (Integer)
+
+          // OPTIONAL PARAMETERS FOLLOW
+          -SurfaceType (Integer)
+          -AvgAbility (float)
+          -AvgAge (Integer)
+          -Cost (Decimal, 2dp)
+          -ShinPads (Boolean)
+
+    Notes:
+      Optional parameters will be null if they weren't added to the game
+    If the game doesn't exist (past kick off time) then success = 10.
+
+  ---GET GAME ACCEPTED PLAYERS---
+    Cmd: 235
+    Request Data:
+      GameID (Integer)
+    Response Data:
+      -Success(Integer)
+      Success (0):
+        -Players (JSON Array, see below)
+        Player object:
+          -UserID (Integer)
+          -FirstName (String)
+          -LastName (String)
+          -PictureURL (String)
+      ServerError (1):
+        -Description
+
+  ---LEAVE GAME---
+    Cmd: 240
+    Request Data:
+      GameID (Integer)
+    Response Data:
+      -Success(Integer)
+      ServerError (1):
+        -Description
+    Notes:
+    Only gets the games you've been accepted into.
+    If the game doesn't exist (past kick off time) then success = 10.
+
+ ---ADD GAME PICTURE---
+    Cmd: 250
+    Request Data:
+      GameID (Integer)
+      Picture (Base64 JPG image)
+    Response Data:
+      -Success(Integer)
+      ServerError (1):
+        -Description
+
+
+=============================================
+                CHAT SYSTEM
+=============================================
+For the chat system, a number of JSON objects 
+will be repeated. They are described here.
+
+This is a JSON object to represent a message displayed in the chat, following
+some sort of chronological order. This does not include 'meta' messages, such as
+a 'message seen' message.  This is because a 'message seen' message will not
+appear as a message in the chat box. However, this does include things like a
+user entering or exiting a group chat, as this will be displayed in
+chronological order alongside all other messages.
+<MESSAGE_OBJECT>
+  Type (int)
+  ID (int)
+  Timestamp (int)
+  MessageBody (JSON Object, see below)
+
+There will be more than 1 message body structure, depending on the Type value in
+the <MESSAGE_OBJECT>.
+Message body types:
+  0 = MESSAGE_BODY_CHAT
+  1 = MESSAGE_BODY_PLAYER
+
+<MESSAGE_BODY_CHAT> (Standard chat message)
+  From (int)
+  Message (String)
+
+<MESSAGE_BODY_PLAYER> (Used to indicate a player joining or leaving the chat
+  Joined (boolean) (True if joined, false if left)
+  UserID (int)
+  FirstName (String)
+  LastName (String)
+
+A conversation ID is needed to do anything regarding conversations.
+To retrieve the ID referencing the conversation between you and 1 other user,
+you must use this message.
+
+A conversation object will be returned when requesting the conversations in
+your inbox.
+
+Group conversations have multiple owners, each of which must be in the
+conversation. These owners have the power to kick and invite other users to
+the conversation.
+
+<CONVERSATION_OBJECT>
+  ID (int)
+  Timestamp (int)
+  AuthorFirstName (String)
+  AuthorLastName (String)
+  LastMessage (String)
+  LastAuthorPictureURL (String)
+  Read (Boolean, whether YOU have read the last message)
+
+<CONVERSATION_USER_OBJECT>
+  ID (int)
+  FirstName (String)
+  LastName (String)
+  PictureURL (String)
+  
+
+  --GET CONVERSATION ID--
+    Cmd: 300
+    Request Data:
+      -UserID (Integer ID)
+    Response Data:
+      -Success (Integer, 0 for success)
+      AuthError (Success = 2):
+        -Description (String)
+      ServerError (Success = 1):
+        -Description (String)
+      Success: 
+        -ConversationID (Integer)
+    Notes:
+      Try and cache this value. Retrieving it every time will be slow and 
+      potentially quite expensive.
+      Additionally, if you input an invalid user ID, a conversation will be 
+      created between the two of you, even if the user ID doesn't necessarily
+      point to a valid user. (This shouldn't happen in release obviously, and
+      there's really no point wasting time checking for it to happen, I don't
+      think it can be abused.)
+
+  --SEND MESSAGE--
+    Cmd: 310
+    Request Data:
+      -ConversationID (64-bit Integer)
+      -Message (String)
+    Response Data:
+      -Success (Integer, 0 for success)
+      -MessageID (Integer)
+      AuthError (Success = 2):
+        -Description (String)
+      ServerError (Success = 1):
+        -Description (String)
+    Notes:
+      An AuthError (Success = 2) will occur when you are authenticated to use
+      this account, but not authenticated to post in this conversation (because
+      you are not in the conversation).
+      MAXIMUM MESSAGE LENGTH = 1024!
+
+  --GET MESSAGES--
+    Cmd: 320
+    Request Data:
+      -ConversationID (64-bit Integer)
+      -LastMessage (64-bit Integer, optional)
+      -Forward (Boolean)
+      -NumMessages (Integer)
+    Response Data:
+      -Success (0 or 1)
+      ServerError:
+        -Description (String)
+      Server Success:
+        -Messages (Json Array of MESSAGE_OBJECT (See above))
+    Notes:
+      LastMessage is the ID of the last message you wish to request. This is for
+      paging: to request the first page (most recent messages) leave this ID out 
+      of the request object. To request the next page, put the ID of the oldest
+      message you have into this object parameter. 
+      You will NOT receive this messages in the message response.
+      Make a separate request for the user's pictures. Try to cache this data,
+      so as not to request their data for each message in the list.
+      
+      The 'Forward' boolean will indicate whether you're reading
+      messages forwards in time or backwards in time. If forwards,
+      this method will return all messages which were added AFTER the
+      given LastMessage. If backwards, this method will return all
+      messages which were added BEFORE the given last message. This
+      allows you to search backwards and forwards for lost messages,
+      and, assuming no kind of data corruption on your side, means you
+      can't possibly lose any message.
+
+      IMPORTANT:
+      It should also be noted that the order of the 'Messages' array
+      will NOT necessarily be in chronological order! You should
+      reorder the messages based on timestamp before you display them!
+
+  --SEEN MESSAGE--
+    Cmd: 330
+    Request Data:
+      -ConversationID (64-bit Integer)
+      -MessageID (64-bit Integer)
+    Response Data:
+      -Success (0 or 1)
+      ServerError:
+        -Description (String)
+    Notes:
+    Used whenever the user sees a message in the conversation. Send
+    the ID of the latest message in that conversation. This will update
+    the 'seen' dictionary (requested below with cmd 340)
+
+  --GET SEEN DICTIONARY--
+    Cmd: 340
+    Request Data:
+      -ConversationID (64-bit Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Server Success:
+        -SeenDict (JSON object mapping userID to messageIDs)
+    Notes:
+      The seen dictionary will be of the form 
+      {<UserID>:<MessageID>, <UserID>:<MessageID>, ...} 
+      and the message ID will be the last message that that user has seen. If a
+      user's ID is not in this dictionary, assume that the user hasn't seen ANY
+      of the messages in the conversation.  If you can't find the message with
+      the ID given in the dictionary, just ignore it. It's either a small error
+      which will correct itself when the value is updated, or the message is so
+      old you haven't requested it and would need to request a few more pages of
+      messages back.  
+      ---IMPORTANT: Both the key
+      and the value will be a STRING, due to JSON requiring the key of an object
+      to be a string, however it is safe to cast them both to 8 byte integers.
+
+  --SET WRITING STATUS--
+    Cmd: 350
+    Request Data:
+      -ConversationID (64-bit Integer)
+      -WritingStatus (Integer, 1 for writing, 0 for not writing.)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    Send this message when the user either starts or stops writing, and set the
+    CurrentlyWriting value to 1 or 0 depending on if they have started
+    or stopped writing a message.
+
+  --SUBSCRIBE TO CONVERSATION--
+    Cmd: 360
+    Request Data:
+      -ConversationID (Integer)
+      -Subscribe (Boolean)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+      Use this to 'subscribe' to a conversation and receive messages about
+      whether or not users have started typing, or have read a recent message.
+      These messages will come through regardless of whether you have requested
+      them, unless you 'unsubscribe' by passing a 'False' value in the
+      'Subscribe' parameter for this message.
+      See below for alerts you may receive (Starts at Cmd 32760).
+
+  --GET CONVERSATIONS--
+    Cmd: 370
+    Request Data:
+      -LastConversation (64-bit Integer ID, optional)
+      -NumConversations (Integer)
+    Response Data:
+      -Success (0 or 1)
+      ServerError:
+        -Description (String)
+      ServerSuccess:
+        -Conversations (Json Array of CONVERSATION_OBJECT (See above))
+
+  --CREATE GROUP CHAT--
+    Cmd: 380
+    Request Data:
+      -UserIDs (Json Array of Integers)
+    Response Data:
+      -Success (0 or 1)
+      ServerError:
+        -Description (String)
+      Success:
+        -ConversationID (Integer)
+    Notes:
+    You don't need to include your own ID, it is added automatically.
+
+  --LEAVE GROUP CHAT--
+    Cmd: 390
+    Request Data:
+      -ConversationID (Integer)
+    Response Data:
+      -Success (Integer)
+      ServerError:
+        -Description (String)
+    Notes:
+    You can only leave group conversations. Attempting to leave a 1 to 1
+    conversation will result in an error. This error won't be reflected in the
+    description - it will merely appear as a database error.
+    The owner can leave the group chat, but there must be another chat owner
+    in the group. You can promote another user to owner of the chat using the
+    PROMOTE TO OWNER message.
+    Check if you're an owner using GET OWNERS OF CHAT.
+
+  --KICK FROM CHAT--
+    Cmd: 400
+    Request Data:
+      -ConversationID (Integer)
+      -UserID (Integer)
+    Response Data:
+      -Success (Integer)
+      ServerError:
+        -Description (String)
+    Notes:
+    Can only do this if you're the owner. Can only kick people who are in the
+    chat currently. This does not ban them from joining again.
+    If you kick them from the team chat, they won't be able to access the team
+    chat again. This could potentially pose a problem, which is why you should
+    use the GET IN CHAT message below to confirm you're definitely in the team
+    chat before transitioning to that view.
+    When someone is kicked from the chat, it will appear as if they've left
+    the chat of their own accord. If you think this should change, message me
+    and I'll distinguish between them.
+
+  --GET IN CHAT--
+    Cmd: 405
+    Request Data:
+      -ConversationID (Integer)
+    Response Data:
+      -Success (Integer)
+      ServerError:
+        -Description (String)
+      Success:
+        -InChat (Boolean)
+
+  --GET CONVERSATION OWNERS--
+    Cmd: 410
+    Request Data:
+      -ConversationID (Integer)
+    Response Data:
+      -Success (Integer)
+      ServerError:
+        -Description (String)
+      Success:
+        -Owners (JsonArray of user IDs (Integers))
+    Notes:
+    Only returns user IDs. You should map these user IDs to the cached data
+    you have from the GET CONVERSATION USERS request.
+    You can only use this request if you're part of the conversation.
+
+  --GET CONVERSATION USERS--
+    Cmd: 420
+    Request Data:
+      -ConversationID (Integer)
+    Response Data:
+      -Success (Integer)
+      ServerError:
+        -Description (String)
+      Success:
+        -Users (JsonArray of CONVERSATION_USER_OBJECT)
+    Notes:
+    Can only use this request if you're part of the conversation.
+    Returns your ID too.
+
+  --INVITE TO CONVERSATION--
+    Cmd: 430
+    Request Data:
+      -ConversationID (Integer)
+      -UserID (Integer)
+    Response Data:
+      -Success (Integer)
+      ServerError:
+        -Description (String)
+    Notes:
+    Can only do this if you are an owner of the conversation.
+    This will NOT send an invite, but will instead add the user to the
+    conversation immediately. That user will then receive a notification about
+    this.
+    This also means that YOU can be added to a conversation at any time.
+    If you ever receive a chat notification for a conversation ID which you
+    haven't cached before, make sure to re-request your recent conversations.
+
+  --PROMOTE TO OWNER--
+    Cmd: 440
+    Request Data:
+      -ConversationID (Integer)
+      -UserID (Integer)
+    Response Data:
+      -Success (Integer)
+      ServerError:
+        -Description (String)
+    Notes:
+    Can only do this if you are an owner of the conversation
+    I don't believe explicitly promoting users to owners of the conversation
+    makes too much sense with the current app design. However, currently
+    owners of the chat can't leave the conversation - as that would leave a chat
+    with no owners, meaning nobody can be invited or kicked from the chat.
+    Not sure how to manage this. Potentially could have everyone promoted to
+    owner to start with, and everyone can invite or kick anyone, just like
+    facebook chat, although I remember speaking to luke and he said that only
+    the person who created the conversation should be allowed to invite and
+    remove people.
+    There can be multiple owners. You can think of this as a conversation
+    'admin'.
+      
+
+
+=============================================
+                CHAT ALERTS
+=============================================
+These chat alerts can be received at any time
+when subscribed to a conversation.
+
+  --SEEN MESSAGE ALERT--
+  Cmd: 16000
+  Opts: ALERT (2)
+  Data:
+    -UserID (64-bit Integer)
+    -MessageID (64-bit Integer)
+  Notes:
+    This alert is sent to all users subscribed to the conversation when 
+    you send the 'SEEN MESSAGE' message.
+    ConversationID is not included because this message should only be sent
+    to a conversation you're subscribed to. If the userID doesn't match any in
+    the conversation, there was simply a mistake in switching subscribed
+    conversations, and you should ignore the message. It won't have any long
+    term bearing.
+
+  --WRITING STATUS ALERT--
+  Cmd: 16010
+  Opts: ALERT (2)
+  Data:
+    -UserID (64-bit Integer)
+    -WritingStatus (Integer, 1 or 0, see <SET WRITING STATUS> (Cmd 350)
+  Notes:
+    This is sent when you are subscribed to a conversation, and indicated that a
+    user that belongs to this conversation has either started or stopped
+    typing a message.
+    As above, if the user ID is not found in the currently subscribed
+    conversation, just ignore this alert. It's not the end of the world.
+
+=============================================
+                NOTIFICATIONS
+=============================================
+These are the in-app notifications you can receive. They can be received at any
+time, so you should always be listening for them to parse the data. PUSH
+notifications are separate to these - do not rely on them for data! It's
+possible for the data not to be sent. Push notifs should simply be an addon.
+This is the base object for all notifications:
+  <NOTIFICATION_OBJECT>
+    ID (Integer)
+    UserID (Integer)
+    Type (Integer)
+    Timestamp (Integer)
+    Read (Boolean)
+    Data (Json Object AS STRING, parameters inside depends on type)
+There are more specific objects for each notification which includes more
+specialised data, but ALL notification will include this data.
+The 'Data' JsonObject will be stored as a string, which you should parse out
+into a JSON object. This is so you can read the type of the notification
+object before parsing the data, who's structure relies on the type.
+
+  --NOTIFICATION ALERT--
+    Cmd: 16600
+    Opts: ALERT (2)
+    Data:
+      -Notification (NOTIFICATION_OBJECT)
+    Notes:
+    This is the alert you will get when you have received a notification whilst
+    online on the app. Unlike chat alerts, you can receive this notification at
+    any point in time, regardless of where you are in the app.
+
+  --GET UNREAD NOTIFICATIONS--
+    Cmd: 600
+    Request Data:
+      None!
+    Response Data:
+      -Success (0 or 1)
+      ServerError:
+        -Description (String)
+      ServerSuccess:
+        -Notifications (Json Array of NOTIFICATION_OBJECT (See above))
+
+  --GET ALL NOTIFICATIONS--
+    Gmd: 605
+    Request Data:
+      None!
+    Response Data:
+      -Success (0 or 1)
+      ServerError:
+        -Description (String)
+      ServerSuccess:
+        -Notifications (Json Array of NOTIFICATION_OBJECT (See above))
+    Notes:
+    This will get all your notificatiions in the last 7
+    days. Notifications older than this are deleted permanently.
+  
+NOTIFICATION TYPES (Type number is shown in parenthesese)
+
+  -- CHAT MESSAGE (0) -- 
+    -AuthorID (Integer)
+    -ConversationID (Integer)
+    -AuthorFirstName (String)
+    -AuthorLastName (String)
+    -AuthorPictureURL (String)
+    -Message (String)
+    -MessageID (Long)
+  Notes:
+  This notification should be combined with others of the same kind when 
+  getting unread notifications. 
+  For example, 2 messages to the same chat should show up as 1 notification.
+
+  -- GAME APPLICATION (10) --
+    -UserID (Integer)
+    -GameID (Integer)
+    -FirstName (Integer)
+    -LastName (Integer)
+    -PictureURL (String)
+
+  -- GAME_APPLICATION RESPONSE (20) --
+    -OwnerID (Integer)
+    -GameID (Integer)
+    -Response (Integer)
+    -OwnerFirstName (Integer)
+    -OwnerLastName (Integer)
+    -OwnerPictureURL (String)
+
+  -- GAME_INVITE (30) --
+    -GameID (Integer)
+    -OwnerID (Integer)
+    -OwnerFirstName (String)
+    -OwnerLastName (String)
+    -OwnerPictureURL (String)
+
+  -- TEAM_GAME_INVITE (35) --
+    -GameID (Integer)
+    -OwnerID (Integer)
+    -OwnerFirstName (String)
+    -OwnerLastName (String)
+    -OwnerPictureURL (String)
+
+  -- GAME_INVITE RESPONSE (40) --
+    -UserID
+    -GameID (Integer)
+    -Response (Integer)
+    -FirstName (Integer)
+    -LastName (Integer)
+    -PictureURL (String)
+
+  -- TEAMSHEET_INVITE (50) --
+    -TeamID (Integer)
+    -TeamType (Integer)
+    -FirstName (Integer)
+    -LastName (Integer)
+    -PictureURL (String)
+
+  -- TEAMSHEET_INVITE RESPONSE (60) --
+    -TeamID (Integer)
+    -TeamType (Integer)
+    -UserID (Integer)
+    -Response (Integer)
+    -FirstName (Integer)
+    -LastName (Integer)
+    -PictureURL (String)
+
+  -- LEFT_GAME (70) --
+    -UserID
+    -GameID (Integer)
+    -FirstName (Integer)
+    -LastName (Integer)
+    -PictureURL (String)
+
+  -- RECIEVED_RATING (80) --
+    -UserID (Integer)
+    -PictureURL (String)
+    -FirstName (String)
+    -LastName (String)
+    -Passing (Float)
+    -Shooting (Float)
+    -Fitness (Float)
+    -Reliability (Float)
+    -AverageRating (Float)
+    -FeedbackMessage (String)
+
+  -- TEAM TRAINING SCHEDULED (90) --
+    -TeamID (Integer)
+    -TeamName (String)
+    -PictureURL (String)
+
+====================================================
+                  THE TEAM SHEET
+====================================================
+The following are JSON objects which are to be used throughout the team sheet
+section of the API:
+
+  <TEAM_PLAYER_OBJECT>
+    UserID (Integer)
+    PositionID (Integer, see below)
+    TeamType (Integer)
+    PictureURL (String)
+    Confirmed (Boolean)
+  Notes:
+  TeamType specifies whether this player belongs to the 6 a side or 11 a side
+  team.
+  11_A_SIDE:  0
+  6_A_SIDE:   1
+  Confirmed is whether or not this TEAM_PLAYER_OBJECT represents an
+  invite to a player or an actual team player.
+
+  <TEAM_OBJECT>
+    TeamName (String)
+    Manager (UserID)
+    Players (JsonArray of TEAM_PLAYER_OBJECT)
+    Lat (Float)
+    Lon (Float)
+  Notes:
+  The team actually consists of 2 separate groups of players, those who play
+  11-a-side and those who play 6-a-side. A player can belong to both of these
+  teams at once.
+  An important thing to note is that each team is NOT capped to 11 and 6
+  players each - this is because they can have subs. A sub players has a
+  PositionID of -1.
+
+
+----------------------------------------
+|         FINDING POSITION IDs         |
+----------------------------------------
+The PositionsIDs are numbered positions which denote which position a player
+plays within the team. Instead of providing a picture to map the on screen
+positions in the teamsheet to their IDs, I will provide a method to find a
+position ID given any layout.
+To find the positionID of a position on screen, count from the top left as you
+would read right-to-left.  This is an ascii example of how boxes would be
+numbered using this scheme:
+
+#######################
+#=====================#
+#==---====---=========#
+#==|0|====|1|=========#
+#==---====---=========#
+#=====================#
+#=====---=============#
+#=====|2|=====---=====#
+#=====---=====|3|=====#
+#=============---=====#
+#=====================#
+#######################
+<Count left-to-right first, then top-to-bottom.>
+
+This way, I don't have to include any images in the documentation (which is
+just a txt file) and this numbering system will persist through different
+arrangements of team positions.
+A SUB has a position value of -1.
+
+  --CREATE TEAM--
+    Cmd: 1000
+    Request Data:
+      Name (String)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -TeamID (Integer)
+    Notes:
+    This will create a team and set the location of the team to the location
+    of the currently logged in user.
+
+
+  --GET OWNED TEAMs--
+    Cmd: 1010
+    Request Data:
+      None!
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -Teams (Json Array of objects (see below))
+        TeamObject:
+          TeamID (Integer)
+          TeamName (String)
+    Notes:
+    Gets the teams you OWN.
+
+  --GET TEAMs--
+    Cmd: 1015
+    Request Data:
+      None!
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -Teams (Json Array of objects (See GET OWNED TEAMS))
+    Notes:
+    Gets the teams you BELONG to, but do not own.
+
+  --GET ASSOCIATED TEAMs--
+    Cmd: 1017
+    Request Data:
+      UserID (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -Teams (Json Array of objects (See GET OWNED TEAMS))
+    Notes:
+    Gets the teams you are associated with (basically Cmd 1015 and
+    1010 put together, but without any overlap)
+
+  --INVITE TO TEAM--
+    Cmd: 1020
+    Request Data:
+      TeamID (Integer)
+      UserIDs (Json Array of TEAM_PLAYER_OBJECT, not including picture URL)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    You invite players to a specific position, however there is no limit on
+    the amount of players you can invite to that position. This means that if
+    2 players accept, 1 of them will receive an error message and will not be
+    added to the team.
+    In addition, inviting someone to a position which is already
+    filled will kick out the old player from the position.
+    If a player is already on the team and you invite them, the invite
+    is removed from the list and will not be sent.
+    
+  --RESPOND TO TEAM INVITE--
+    Cmd: 1030
+    Request Data:
+      TeamID (Integer)
+      TeamType (Integer)
+      Response (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes: 
+    Response codes same as other invite responses
+
+  --REMOVE FROM TEAM--
+    Cmd: 1040
+    Request Data:
+      TeamID (Integer)
+      TeamType (Integer)
+      UserID (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    Will return an error code of 2 (in the Success field of the response) if
+    you are not the owner of the team.
+
+  --GET TEAM PLAYERS--
+    Cmd: 1050
+    Request Data:
+      TeamID (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -Players (Json Array of TEAM_PLAYER_OBJECT)
+    Notes: 
+    This endpoint should mainly be used to see what POSITIONS people are in,
+    as positions can be dragged around very freely and updated often.
+    TO GET THE PLAYERS' PICTURES AND NAMES:
+    You should use this to request who is in the team, then get their names
+    and pictures separately using get profile, then cache. Then just keep
+    re-requesting this endpoint. If any userIDs are new in the players array,
+    re-request that profile.
+    Additionally, there are no requirements to get this list - anyone can do
+    it, regardless of whether they belong to the team or not. If you think of
+    any problems (security wise) with this, message me.
+
+  --GET UNCONFIRMED TEAM PLAYERS--
+    Cmd: 1055
+    Request Data:
+      TeamID (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -Players (Json Array of TEAM_PLAYER_OBJECT)
+    Notes:
+    This works just like GET TEAM PLAYERS, but will instead return all
+    invited players who haven't already accepted their invite to the
+    team.
+
+  --CHANGE TEAM POSITIONS--
+    Cmd: 1060
+    Request Data:
+      TeamID (Integer)
+      Positions (Json Array of TEAM_PLAYER_OBJECT, not including picture URL)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    You can only change the positions of users in a team if you are the owner.
+    Using this endpoint, you respecify all of the positions of all the users.
+    If, in the array you send, there is some kind of discrepency (not all
+    users assigned to new positions, some user IDs are not in team) then this
+    will return an error.
+    You must update both types of team (6 and 11 a side) at once. If no
+    changes were made to 1 of the teams, the positions must still be included.
+    You cannot specify a position < 0 or > 100
+    IMPORTANT!
+    With the advent of the new GET UNCONFIRMED TEAM PLAYERS message,
+    you must now specify all players IDs (Confirmed AND unconfirmed).
+      
+  --GET TEAM CHAT ID--
+    Cmd: 1070
+    Request Data:
+      -TeamID (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -ConversationID (Integer)
+    Notes:
+    Will create a team chat implicitly if this request has not been used
+    before.
+
+  --CHANGE TEAM NAME--
+    Cmd: 1080
+    Request Data:
+      -TeamID (Integer)
+      -TeamName (String)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+
+  --GET TEAM--
+    Cmd: 1090
+    Request Data:
+      -TeamID (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Server Success:
+        -Team (TEAM_OBJECT)
+
+  --JOIN TEAM--
+    Cmd: 1100
+    Request Data:
+      TeamID (Integer)
+      TeamType (Integer)
+      TeamPosition (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    Joins a team that you own. If you don't own the teamID given, an
+    error is returned.
+    If you already belong to the team, an error is returned.
+
+  --LEAVE TEAM--
+    Cmd: 1105
+    Request Data:
+      TeamID (Integer)
+      TeamType (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    Leaves a team.
+    
+  --CHANGE TEAM LOCATION--
+    Cmd: 1110
+    Request Data:
+      TeamID (Integer)
+      Lat (Float)
+      Lon (Float)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    Leaves a team.
+
+    --DELETE TEAM--
+    Cmd: 1120
+    Request data:
+      -TeamID (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+
+    --CHANGE TEAM PICTURE--
+    Cmd: 1130
+    Request data:
+      -TeamID (Integer)
+      -Picture (String, Base64 encoded jpg image (like reg))
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+
+    --SET TEAM MANAGER--
+    Cmd: 1140
+    Request Data:
+      -TeamID (Integer)
+      -UserID (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes: Need to be the team owner to do this, and UserID needs to
+    be part of the team.
+      
+    --GET TEAM FINANCES--
+    Cmd: 1150
+    Request data:
+      -TeamID (Integer)
+    Response Data:
+      -Success (Integer)
+    Server Error:
+      -Description (String)
+    Server Success:
+      -Finances (JSON Array of objects)
+      Finance object:
+        -UserID (Integer)
+        -Finances (Integer)
+    Notes: Need to be part of the team to use this
+    
+    --SET TEAM FINANCES--
+    Cmd: 1150
+    Request data:
+      -TeamID (Integer)
+      -Finances (JSON Array of objects)
+      Finance object:
+        -UserID (Integer)
+        -Finances (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes: Need to be part of the team to use this
+
+    --CREATE TEAM DUTY--
+    Cmd: 1160
+    Request data:
+      -TeamID (Integer)
+      -DutyName (String)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+
+    --ASSIGN TEAM DUTY--
+    Cmd: 1170
+    Request data:
+      -DutyID (String)
+      -UserIDs (Json Array of Integers)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+
+    --REMOVE TEAM MEMBER DUTY--
+    Cmd: 1180
+    Request data:
+      -DutyID (String)
+      -UserID (Integer)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes: Removes the assignment, NOT the duty.
+
+    --GET TEAM DUTIES--
+    Cmd: 1190
+    Request data:
+      -TeamID (Integer)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -Duties (JSON object, see notes for structure.)
+    Notes:
+      Keys in this JSON object are the IDs of the team duties. The
+      values associated with the keys are JSON objects that contain
+      data relating to the duty. A valid response example would be as
+      follows:
+      Duties: {
+        0: {
+          DutyName: "Boot Cleaning",
+          UserIDs: [
+          {UserID: 4,
+            PictureURL: "fullteamapp.com:8080/alskdjalskjasd.jpg"},
+          {UserID: 5,
+            PictureURL: "fullteamapp.com:8080/lkdjfgoiklefdj.jpg"},
+          ]},
+        4: {
+          DutyName: "Another duty",
+          UserIDs: [
+          {UserID: 2,
+            PictureURL: "fullteamapp.com:8080/ioukjfnrdhjklj.jpg"},
+          {UserID: 7,
+            PictureURL: "fullteamapp.com:8080/mjhfidkujfghjf.jpg"},
+          ]},
+      }
+
+    --REMOVE TEAM DUTY--
+    Cmd: 1200
+    Request data:
+      -DutyID (Integer)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+
+    --CREATE TEAM TRAINING--
+    Cmd: 1250
+    Request data:
+      -TeamID (Integer)
+      -Timestamp (Integer)
+      -Cost (Decimal, not handling transactions so rounding issues not a problem)
+      -Description (String)
+      -IsCustomVenue (Boolean)
+      Premade Venue:
+        -Venue (Integer, see the GET VENUES section)
+      -Lat (Float)
+      -Lon (Float)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Decsription (String)
+
+    --REMOVE TEAM TRAINING--
+    Cmd: 1260
+    Request data:
+      TeamID (Integer)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Decsription (String)
+
+    --GET TEAM TRAINING--
+    Cmd: 1270
+    Request data:
+      TeamID (Integer)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Decsription (String)
+      Success:
+        -Timestamp (Integer)
+        -Cost (Decimal, not handling transactions so rounding issues not a problem)
+        -Responses (Json Array of objects:)
+        Response object:
+          -UserID (Integer)
+          -Response (Integer, 0 = unsure, 1 = available, 2 = unavailale)
+
+    --RESPOND TO TEAM TRAINING--
+    Cmd: 1280
+    Request data:
+      TeamID (Integer)
+      Response (Integer, 0 = unsure, 1 = available, 2 = unavailale)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Decsription (String)
+
+    ---CREATE TEAM GAME---
+      Cmd: 1350
+      Request Data:
+        -TeamID (Integer)
+        <GameTime is the time at which the game will start>
+        -GameTime (Integer timestamp)
+        -HasTransport (Boolean) (Is this still needed)
+        -MeetingPlace (String, max 512 chars)
+        -Description (String)
+        -IsCustomVenue (Boolean)
+        Premade Venue:
+          -Venue (Integer, see the GET VENUES section)
+        -Lat (Float)
+        -Lon (Float)
+        OPTIONAL PROPERTIES:
+          -SurfaceType (Integer, see above)
+          -AvgAbility (float between 0 and 1. Round the float to certain values 
+                depending on what string you want to display (beginner, 
+                intermediate, experienced...)
+          -AvgAge (Integer)
+          -Cost (Decimal (Don't use floating point, it's money we're dealing with)
+                which is cost per person to the owner)
+          -ShinPads (Boolean)
+      Response Data:
+        -Success (Integer)
+        ServerError:
+          -Description (String)
+        Success:
+          -GameID (Integer) 
+      Notes:
+      See notes for CREATE GAME.
+      This behaves just like CREATE GAME, but will invite everyone in
+      the team by default. Only the manager of a team can do this.
+      Game is also private by default.
+      ApplicationType is set to Standard. Invites are required.
+      This game will contain position data, and it will be filled with
+      the team player positions by default.
+      Maximum number of players will be limitless for team games.
+
+  --CHANGE TEAM GAME POSITIONS--
+    Cmd: 1360
+    Request Data:
+      TeamID (Integer)
+      Positions (Json Array of position objects)
+      Position Objects:
+        UserID (Integer)
+        Position (Integer)
+    Response Data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+    Notes:
+    You can only change the positions of users in a game if you are the owner.
+    This is basically the same as the CHANGE TEAM POSITIONS endpoint. 
+    Using this endpoint, you respecify all of the positions of all the users.
+    If, in the array you send, there is some kind of discrepency (not all
+    users assigned to new positions, some user IDs are not in team) then this
+    will return an error. Make sure everything's correct!
+
+    ---GET LATEST TEAM GAME---
+    Cmd: 1370
+    Request data:
+      -TeamID (Integer)
+    Response data:
+      -Success (Integer)
+      Server Error:
+        -Description (String)
+      Success:
+        -GameID (Integer)
+        -Latitude (Float)
+        -Longitude (Float)
+        -HasTransport (Boolean)
+        -GameTime (Integer)
+        -TimeCreated (Integer)
+        -Distance (Float)
+        -MeetingPlace (String)
+        -Description (String)
+
+        -IsCustomVenue (Boolean)
+        If CustomVenue:
+        Else
+          -Venue (Int)
+
+        -PlayerPositions (JsonArray)
+        PlayerPosition object:
+          -UserID (Integer)
+          -Position (Integer)
+
+        // OPTIONAL PARAMETERS FOLLOW
+        -SurfaceType (Integer)
+        -AvgAbility (float)
+        -AvgAge (Integer)
+        -Cost (Decimal, 2dp)
+        -ShinPads (Boolean)
+    Notes:
+    Will return error of 3 if no team game found.
+
+
+=============================================
+            PUSH NOTIFICATIONS
+=============================================
+Push notifications will sometimes be sent in addition to normal in-app
+notifications.
+
+The message which is sent will be a brief description of the
+message. See below for a list of messages - notify me if one needs to
+be changed.
+
+On SEND MESSAGE:
+You have received a message!
+
+On INVITE TO TEAM
+You have received an invite to join a team!
+
+On INVITE TO GAME
+You have received an invite to play in a game!
+
+On APPLY FOR GAME
+Someone has applied to your game!
+
+
+In these notifications I make a point not to include any names. I feel
+like including names in a push notification does nothing but make the
+user less likely to check the app - however, if names need to be
+added, it can be done relatively easily.

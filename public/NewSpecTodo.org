@@ -1,0 +1,58 @@
+* Tom
+** Login
+*** Twitter login
+*** Mobile number
+*** Gender
+*** Age
+*** Multiple player positions
+** Search Games
+*** Add age fields to search player results
+*** Add rating field to search player results
+** Games
+*** Add game pictures
+** Blocking users
+*** Block user message
+*** Can't rate a user if they're blocked, or if they have blocked you
+*** Can't find a user in a search if they're blocked, or if they have blocked you
+*** Can't invite a blocked user to games, and they can't invite you to games.
+** Teamsheet changes
+*** Add team photo.
+*** Teams are either 11 a side or 6 a side, not both.
+*** Set team manager (Can be done by manager, or owner if no manager is available)
+*** View finances
+Not handling any transactions, just a list of team members that are
+behind / ahead on payments. Managers should be able to change the
+amount that all the players owe to the team (negative or positive).
+**** Add get finances message
+**** Add set finances message
+Only managers can do this
+*** Team duties
+**** Create new team duty
+**** Assign team member duty
+**** Remove team member duty
+**** Get team duties
+Get list of team duties as a map of integers to strings, and a list of
+team members assigned to this duty.
+
+*** Team training
+There can only be 1 team training session scheduled at once (for some reason).
+**** Create team training session
+Includes location, time, cost, and a description.
+**** Delete team training session
+**** Get current team training session scheduled
+*** Team games
+Can create multiple games scheduled at different times. Should be able
+to request who has accepted / rejected the invites in the team. Should
+also be able to open the game up and search for more players to be
+added to the team.
+*** Get most recently added game data
+For displaying on the team 'home page'.
+*** Rate teams
+NTS: Rated on banter, teamwork, fitness, reliability
+
+** Change game positions to work on the team position system instead of 'goalkeeper, defence, mid, striker'
+
+
+* Changes that need to go on basecamp
+** Change game positions to work on the team position system instead of 'goalkeeper, defence, mid, striker'
+

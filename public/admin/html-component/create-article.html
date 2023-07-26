@@ -1,0 +1,9 @@
+<form onsubmit="createArticleController.formSubmitEv()" >
+  <input type="text" id="title" placeholder="Article Title"/></br>
+  <textarea id="body" placeholder="Article body here..."></textarea></br>
+  <label for="articlepicturepreview">Picture:</label>
+  <input type="file" id="articlepicture" onchange="createArticleController.previewFile()"/></br>
+  <img id="articlepicturepreview" height="200"></br>
+  <input type="submit" id="submit" value="Create"/></br>
+</form>
+

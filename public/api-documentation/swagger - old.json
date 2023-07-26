@@ -1,0 +1,3432 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "0.0.0",
+    "title": "Fullteam"
+  },
+  "host": "fullteam.uny.cc:3000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+
+  "securityDefinitions": {
+    "LoginToken": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+
+  "paths": {
+    "/login": {
+      "post": {
+        "description": "Login to Fullteam.",
+        "parameters": [{
+          "name": "LoginType",
+          "in": "formData",
+          "description": "0 for normal, \n1 for Facebook login",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Email",
+          "in": "formData",
+          "description": "Email of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "Password",
+          "in": "formData",
+          "description": "Password of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                },
+                "UserID": {
+                  "type": "integer"
+                },
+                "LoginToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "description": "Register to Fullteam.",
+        "parameters": [{
+          "name": "RegistrationType",
+          "in": "formData",
+          "description": "0 for normal, \n1 for Facebook registration",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Email",
+          "in": "formData",
+          "description": "Email of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "GCMID",
+          "in": "formData",
+          "description": "GMCID",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "Positions",
+          "in": "formData",
+          "description": "Position of user",
+          "required": true,
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }, {
+          "name": "Password",
+          "in": "formData",
+          "description": "Password of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "FirstName",
+          "in": "formData",
+          "description": "Firstname of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "LastName",
+          "in": "formData",
+          "description": "Lastname of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "Birthday",
+          "in": "formData",
+          "description": "Birthday of user, format DDMMYYYY",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "Gender",
+          "in": "formData",
+          "description": "1: male, 2: female",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "MobileNumber",
+          "in": "formData",
+          "description": "",
+          "required": false,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "success",
+                "description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/location": {
+      "security": [
+          {
+              "LoginToken": []
+          }
+      ],
+      "post": {
+        "description": "Send user location.",
+        "parameters": [{
+          "name": "Latitude",
+          "in": "formData",
+          "description": "Latitude of user",
+          "required": true,
+          "type": "number",
+          "format": "double"
+        }, {
+          "name": "Longitude",
+          "in": "formData",
+          "description": "Longitude of user",
+          "required": true,
+          "type": "number",
+          "format": "double"
+        }, {
+          "name": "Locality",
+          "in": "formData",
+          "description": "Locality of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "Country",
+          "in": "formData",
+          "description": "Country of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "success",
+                "description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/settings": {
+      "post": {
+        "description": "Set settings of user.",
+        "parameters": [{
+          "name": "CommentsAllowed",
+          "in": "formData",
+          "description": "Enable comments of user",
+          "required": true,
+          "type": "boolean",
+          "format": "boolean"
+        }, {
+          "name": "NotificationsAllowed",
+          "in": "formData",
+          "description": "Enable notification of user",
+          "required": true,
+          "type": "boolean",
+          "format": "boolean"
+        }, {
+          "name": "Searchable",
+          "in": "formData",
+          "description": "Enable user to be searchable",
+          "required": true,
+          "type": "boolean",
+          "format": "boolean"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "success",
+                "description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-settings": {
+      "post": {
+        "summary": "Get settings of user",
+        "description": "Get settings of user",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                },
+                "CommentsAllowed": {
+                  "type": "boolean"
+                },
+                "NotificationsAllowed": {
+                  "type": "boolean"
+                },
+                "Searchable": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "success",
+                "CommentsAllowed",
+                "NotificationsAllowed",
+                "Searchable"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-profile": {
+      "post": {
+        "description": "Get user profile by user ID",
+        "parameters": [{
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "UserID": {
+                  "type": "integer"
+                },
+                "Positions": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "FirstName": {
+                  "type": "string"
+                },
+                "LastName": {
+                  "type": "string"
+                },
+                "Birthday": {
+                  "type": "string"
+                },
+                "PictureURL": {
+                  "type": "string"
+                },
+                "CoverPictureURL": {
+                  "type": "string"
+                },
+                "AverageFitness": {
+                  "type": "integer"
+                },
+                "AveragePassing": {
+                  "type": "number"
+                },
+                "AverageRating": {
+                  "type": "number"
+                },
+                "AverageShooting": {
+                  "type": "number"
+                },
+                "AverageReliability": {
+                  "type": "number"
+                },
+                "CommentsAllowed": {
+                  "type": "boolean"
+                },
+                "AlreadyRated": {
+                  "type": "boolean"
+                },
+                "feedbacks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "fromFirstName": {
+                        "type": "string"
+                      },
+                      "fromLastName": {
+                        "type": "string"
+                      },
+                      "fromID": {
+                        "type": "integer"
+                      },
+                      "passing": {
+                        "type": "integer"
+                      },
+                      "shooting": {
+                        "type": "integer"
+                      },
+                      "fitness": {
+                        "type": "integer"
+                      },
+                      "reliability": {
+                        "type": "integer"
+                      },
+                      "average": {
+                        "type": "number"
+                      },
+                      "feedback": {
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "fromFirstName",
+                      "fromLastName",
+                      "fromID",
+                      "passing",
+                      "shooting",
+                      "fitness",
+                      "reliability",
+                      "average",
+                      "feedback",
+                      "timestamp"
+                    ]
+                  }
+                },
+                "success": {
+                  "type": "integer"
+                },
+                "TeamPositionID": {
+                  "type": "integer"
+                },
+                "TeamConfirmed": {
+                  "type": "integer"
+                },
+                "teamID": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "UserID",
+                "Positions",
+                "FirstName",
+                "LastName",
+                "Birthday",
+                "PictureURL",
+                "CoverPictureURL",
+                "AverageFitness",
+                "AveragePassing",
+                "AverageRating",
+                "AverageShooting",
+                "AverageReliability",
+                "CommentsAllowed",
+                "AlreadyRated",
+                "feedbacks",
+                "success",
+                "TeamPositionID",
+                "TeamConfirmed",
+                "teamID"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-regional-rankings": {
+      "post": {
+        "description": "Get regional ranking of user.",
+        "parameters": [{
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "UserLocation": {
+                  "type": "object",
+                  "properties": {
+                    "lat": {
+                      "type": "number"
+                    },
+                    "lon": {
+                      "type": "number"
+                    },
+                    "locality": {
+                      "type": "string"
+                    },
+                    "country": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "lat",
+                    "lon",
+                    "locality",
+                    "country"
+                  ]
+                },
+                "UserRating": {
+                  "type": "number"
+                },
+                "UserRanking": {
+                  "type": "integer"
+                },
+                "UsersInRegion": {
+                  "type": "integer"
+                },
+                "LeaderBoard": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "FirstName": {
+                        "type": "string"
+                      },
+                      "LastName": {
+                        "type": "string"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      },
+                      "Rating": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "FirstName",
+                      "LastName",
+                      "PictureURL",
+                      "Rating"
+                    ]
+                  }
+                },
+                "success": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "UserLocation",
+                "UserRating",
+                "UserRanking",
+                "UsersInRegion",
+                "LeaderBoard",
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-user-data": {
+      "post": {
+        "summary": "Get data of user",
+        "description": "Get email, picture and birthday of user",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Email": {
+                  "type": "string"
+                },
+                "PictureURL": {
+                  "type": "string"
+                },
+                "Birthday": {
+                  "type": "string"
+                },
+                "success": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "Email",
+                "PictureURL",
+                "Birthday",
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/update-user-data": {
+      "post": {
+        "summary": "Update data of user.",
+        "description": "Update firstname, lastname, email, birthday, profile picture or cover picture of user",
+        "parameters": [{
+          "name": "FirstName",
+          "in": "formData",
+          "description": "Firstname of user",
+          "required": false,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "LastName",
+          "in": "formData",
+          "description": "Lastname of user",
+          "required": false,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "Email",
+          "in": "formData",
+          "description": "Email of user",
+          "required": false,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "Birthday",
+          "in": "formData",
+          "description": "Birthday of user, format YYYYMMDD",
+          "required": false,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "Picture",
+          "in": "formData",
+          "description": "Picture of user",
+          "required": false,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "CoverPicture",
+          "in": "formData",
+          "description": "Cover picture of user",
+          "required": false,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/search-players-by-distance": {
+      "post": {
+        "description": "Search players by distance",
+        "parameters": [{
+          "name": "SearchDistance",
+          "in": "formData",
+          "description": "Distance near user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                },
+                "UserList": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Position": {
+                        "type": "integer"
+                      },
+                      "FirstName": {
+                        "type": "string"
+                      },
+                      "LastName": {
+                        "type": "string"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      },
+                      "AverageRating": {
+                        "type": "null"
+                      },
+                      "Distance": {
+                        "type": "number"
+                      },
+                      "Online": {
+                        "type": "integer"
+                      },
+                      "LastActive": {
+                        "type": "integer"
+                      },
+                      "Latitude": {
+                        "type": "number"
+                      },
+                      "Longitude": {
+                        "type": "number"
+                      },
+                      "ChatUserID": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "Position",
+                      "FirstName",
+                      "LastName",
+                      "PictureURL",
+                      "AverageRating",
+                      "Distance",
+                      "Online",
+                      "LastActive",
+                      "Latitude",
+                      "Longitude",
+                      "ChatUserID"
+                    ]
+                  }
+                },
+                "description": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "success",
+                "UserList",
+                "description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/search-players-by-name": {
+      "post": {
+        "description": "Search players by name of user",
+        "parameters": [{
+          "name": "Name",
+          "in": "formData",
+          "description": "Name of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "command": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "integer"
+                },
+                "randomNumber": {
+                  "type": "integer"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "integer"
+                    },
+                    "UserList": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "UserID": {
+                            "type": "integer"
+                          },
+                          "Position": {
+                            "type": "integer"
+                          },
+                          "FirstName": {
+                            "type": "string"
+                          },
+                          "LastName": {
+                            "type": "string"
+                          },
+                          "PictureURL": {
+                            "type": "string"
+                          },
+                          "AverageRating": {
+                            "type": "number"
+                          },
+                          "Distance": {
+                            "type": "number"
+                          },
+                          "Online": {
+                            "type": "integer"
+                          },
+                          "LastActive": {
+                            "type": "integer"
+                          },
+                          "Latitude": {
+                            "type": "number"
+                          },
+                          "Longitude": {
+                            "type": "number"
+                          },
+                          "ChatUserID": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "UserID",
+                          "Position",
+                          "FirstName",
+                          "LastName",
+                          "PictureURL",
+                          "AverageRating",
+                          "Distance",
+                          "Online",
+                          "LastActive",
+                          "Latitude",
+                          "Longitude",
+                          "ChatUserID"
+                        ]
+                      }
+                    },
+                    "description": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "UserList",
+                    "description"
+                  ]
+                }
+              },
+              "required": [
+                "command",
+                "options",
+                "randomNumber",
+                "data"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/rate-user": {
+      "post": {
+        "description": "Rate a user ",
+        "parameters": [{
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Passing",
+          "in": "formData",
+          "description": "Passing of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Shooting",
+          "in": "formData",
+          "description": "Shooting of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Fitness",
+          "in": "formData",
+          "description": "Fitness of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Reliability",
+          "in": "formData",
+          "description": "Reliability of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "FeedbackMessage",
+          "in": "formData",
+          "description": "Feedback message of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                },
+                "Description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "success",
+                "Description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-user-rating": {
+      "post": {
+        "description": "Get user rating",
+        "parameters": [{
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "PictureURL": {
+                  "type": "string"
+                },
+                "FirstName": {
+                  "type": "string"
+                },
+                "LastName": {
+                  "type": "string"
+                },
+                "Passing": {
+                  "type": "integer"
+                },
+                "Shooting": {
+                  "type": "integer"
+                },
+                "Fitness": {
+                  "type": "integer"
+                },
+                "Reliability": {
+                  "type": "integer"
+                },
+                "AverageRating": {
+                  "type": "number"
+                },
+                "FeedbackMessage": {
+                  "type": "string"
+                },
+                "success": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "PictureURL",
+                "FirstName",
+                "LastName",
+                "Passing",
+                "Shooting",
+                "Fitness",
+                "Reliability",
+                "AverageRating",
+                "FeedbackMessage",
+                "success",
+                "description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/user-birthday": {
+      "post": {
+        "description": "Set birthday of user, format YYYYMMDD",
+        "parameters": [{
+          "name": "Birthday",
+          "in": "formData",
+          "description": "Birthday of user, format YYYYMMDD",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0 success, 1 error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/user-gcmid": {
+      "post": {
+        "description": "Set gcm id of user",
+        "parameters": [{
+          "name": "GCMID",
+          "in": "formData",
+          "description": "GCM ID of user",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0 success, 1 error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/search-games": {
+      "post": {
+        "description": "Search games by distance",
+        "parameters": [{
+          "name": "SearchDistance",
+          "in": "formData",
+          "description": "Distance near user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Games": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "UserID": {
+                        "type": "integer"
+                      },
+                      "FirstName": {
+                        "type": "string"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      },
+                      "GameID": {
+                        "type": "integer"
+                      },
+                      "MeetingPlace": {
+                        "type": "string"
+                      },
+                      "Description": {
+                        "type": "string"
+                      },
+                      "HasTransport": {
+                        "type": "integer"
+                      },
+                      "GameTime": {
+                        "type": "integer"
+                      },
+                      "TimeCreated": {
+                        "type": "integer"
+                      },
+                      "Distance": {
+                        "type": "number"
+                      },
+                      "Lat": {
+                        "type": "integer"
+                      },
+                      "Lon": {
+                        "type": "integer"
+                      },
+                      "IsCustomVenue": {
+                        "type": "integer"
+                      },
+                      "ApplicationType": {
+                        "type": "integer"
+                      },
+                      "MaxPlayers": {
+                        "type": "integer"
+                      },
+                      "PlayersJoined": {
+                        "type": "integer"
+                      },
+                      "SurfaceType": {
+                        "type": "integer"
+                      },
+                      "AvgAbility": {
+                        "type": "integer"
+                      },
+                      "AvgAge": {
+                        "type": "integer"
+                      },
+                      "Cost": {
+                        "type": "integer"
+                      },
+                      "ShinPads": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "UserID",
+                      "FirstName",
+                      "PictureURL",
+                      "GameID",
+                      "MeetingPlace",
+                      "Description",
+                      "HasTransport",
+                      "GameTime",
+                      "TimeCreated",
+                      "Distance",
+                      "Lat",
+                      "Lon",
+                      "IsCustomVenue",
+                      "ApplicationType",
+                      "MaxPlayers",
+                      "PlayersJoined",
+                      "SurfaceType",
+                      "AvgAbility",
+                      "AvgAge",
+                      "Cost",
+                      "ShinPads"
+                    ]
+                  }
+                },
+                "success": {
+                  "type": "integer",
+                  "description": "0 for success, 1 for error"
+                }
+              },
+              "required": [
+                "Games",
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/invite-to-game": {
+      "post": {
+        "description": "Invite player to game",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "Game ID",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "UserIDs",
+          "in": "formData",
+          "description": "Array of user ids",
+          "required": true,
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/apply-for-game": {
+      "post": {
+        "description": "Apply for a game",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "Game ID",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: error server, 2: game full, 3: Already applied, 4: already playing"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-game-applications": {
+      "post": {
+        "description": "Get game applications",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "Game ID",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "description": {
+                  "type": "null"
+                },
+                "ApplicationsList": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "UserID": {
+                        "type": "integer"
+                      },
+                      "Positions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "UserID",
+                      "Positions"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "description",
+                "ApplicationsList"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/respond-to-game-invite": {
+      "post": {
+        "description": "Respond to game invite",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "Game ID",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Response",
+          "in": "formData",
+          "description": "1: accept, 0: reject",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: error server"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-game-invites": {
+      "post": {
+        "description": "Get game invites received",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: Success, 1: Server error"
+                },
+                "InviteList": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "FromID": {
+                        "type": "integer"
+                      },
+                      "ToID": {
+                        "type": "integer"
+                      },
+                      "GameID": {
+                        "type": "integer"
+                      },
+                      "Time": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "FromID",
+                      "ToID",
+                      "GameID",
+                      "Time"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "InviteList"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-invited-to-game": {
+      "post": {
+        "description": "Get players invited to game",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "Game ID",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: Success, 1: Server error, 2: Authorization error"
+                },
+                "InviteList": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "FromID": {
+                        "type": "integer"
+                      },
+                      "GameID": {
+                        "type": "integer"
+                      },
+                      "Time": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "FromID",
+                      "GameID",
+                      "Time"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "InviteList"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/respond-to-game-application": {
+      "post": {
+        "description": "Respond to game application",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "ID of the game",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Response",
+          "in": "formData",
+          "description": "0: reject, 1: accept",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: Success, 1: Server error, 2: Authorization error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-owned-games": {
+      "post": {
+        "description": "Get user owned games",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Games": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "UserID": {
+                        "type": "integer"
+                      },
+                      "FirstName": {
+                        "type": "string"
+                      },
+                      "LastName": {
+                        "type": "string"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      },
+                      "GameID": {
+                        "type": "integer"
+                      },
+                      "MeetingPlace": {
+                        "type": "string"
+                      },
+                      "Description": {
+                        "type": "string"
+                      },
+                      "HasTransport": {
+                        "type": "boolean"
+                      },
+                      "GameTime": {
+                        "type": "integer"
+                      },
+                      "TimeCreated": {
+                        "type": "integer"
+                      },
+                      "Distance": {
+                        "type": "number"
+                      },
+                      "Lat": {
+                        "type": "number"
+                      },
+                      "Lon": {
+                        "type": "number"
+                      },
+                      "IsCustomVenue": {
+                        "type": "boolean"
+                      },
+                      "Venue": {
+                        "type": "integer"
+                      },
+                      "ApplicationType": {
+                        "type": "integer"
+                      },
+                      "PositionsOpen": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "ID": {
+                              "type": "integer"
+                            },
+                            "GameID": {
+                              "type": "integer"
+                            },
+                            "Position": {
+                              "type": "integer"
+                            },
+                            "UserID": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "ID",
+                            "GameID",
+                            "Position",
+                            "UserID"
+                          ]
+                        }
+                      },
+                      "PositionsTaken": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "ID": {
+                              "type": "integer"
+                            },
+                            "GameID": {
+                              "type": "integer"
+                            },
+                            "Position": {
+                              "type": "integer"
+                            },
+                            "UserID": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "ID",
+                            "GameID",
+                            "Position",
+                            "UserID"
+                          ]
+                        }
+                      },
+                      "MaxPlayers": {
+                        "type": "integer"
+                      },
+                      "PlayersJoined": {
+                        "type": "integer"
+                      },
+                      "SurfaceType": {
+                        "type": "integer"
+                      },
+                      "AvgAbility": {
+                        "type": "number"
+                      },
+                      "AvgAge": {
+                        "type": "integer"
+                      },
+                      "Cost": {
+                        "type": "number"
+                      },
+                      "ShinPads": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "UserID",
+                      "FirstName",
+                      "LastName",
+                      "PictureURL",
+                      "GameID",
+                      "MeetingPlace",
+                      "Description",
+                      "HasTransport",
+                      "GameTime",
+                      "TimeCreated",
+                      "Distance",
+                      "Lat",
+                      "Lon",
+                      "IsCustomVenue",
+                      "Venue",
+                      "ApplicationType",
+                      "PositionsOpen",
+                      "PositionsTaken",
+                      "MaxPlayers",
+                      "PlayersJoined",
+                      "SurfaceType",
+                      "AvgAbility",
+                      "AvgAge",
+                      "Cost",
+                      "ShinPads"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Games"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-joined-games": {
+      "post": {
+        "description": "Get the games the user has been accepted into",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Games": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "UserID": {
+                        "type": "integer"
+                      },
+                      "FirstName": {
+                        "type": "string"
+                      },
+                      "LastName": {
+                        "type": "string"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      },
+                      "GameID": {
+                        "type": "integer"
+                      },
+                      "MeetingPlace": {
+                        "type": "string"
+                      },
+                      "Description": {
+                        "type": "string"
+                      },
+                      "HasTransport": {
+                        "type": "boolean"
+                      },
+                      "GameTime": {
+                        "type": "integer"
+                      },
+                      "TimeCreated": {
+                        "type": "integer"
+                      },
+                      "Distance": {
+                        "type": "number"
+                      },
+                      "Lat": {
+                        "type": "number"
+                      },
+                      "Lon": {
+                        "type": "number"
+                      },
+                      "IsCustomVenue": {
+                        "type": "boolean"
+                      },
+                      "Venue": {
+                        "type": "integer"
+                      },
+                      "ApplicationType": {
+                        "type": "integer"
+                      },
+                      "PositionsOpen": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "ID": {
+                              "type": "integer"
+                            },
+                            "GameID": {
+                              "type": "integer"
+                            },
+                            "Position": {
+                              "type": "integer"
+                            },
+                            "UserID": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "ID",
+                            "GameID",
+                            "Position",
+                            "UserID"
+                          ]
+                        }
+                      },
+                      "PositionsTaken": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "ID": {
+                              "type": "integer"
+                            },
+                            "GameID": {
+                              "type": "integer"
+                            },
+                            "Position": {
+                              "type": "integer"
+                            },
+                            "UserID": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "ID",
+                            "GameID",
+                            "Position",
+                            "UserID"
+                          ]
+                        }
+                      },
+                      "MaxPlayers": {
+                        "type": "integer"
+                      },
+                      "PlayersJoined": {
+                        "type": "integer"
+                      },
+                      "SurfaceType": {
+                        "type": "integer"
+                      },
+                      "AvgAbility": {
+                        "type": "number"
+                      },
+                      "AvgAge": {
+                        "type": "integer"
+                      },
+                      "Cost": {
+                        "type": "number"
+                      },
+                      "ShinPads": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "UserID",
+                      "FirstName",
+                      "LastName",
+                      "PictureURL",
+                      "GameID",
+                      "MeetingPlace",
+                      "Description",
+                      "HasTransport",
+                      "GameTime",
+                      "TimeCreated",
+                      "Distance",
+                      "Lat",
+                      "Lon",
+                      "IsCustomVenue",
+                      "Venue",
+                      "ApplicationType",
+                      "PositionsOpen",
+                      "PositionsTaken",
+                      "MaxPlayers",
+                      "PlayersJoined",
+                      "SurfaceType",
+                      "AvgAbility",
+                      "AvgAge",
+                      "Cost",
+                      "ShinPads"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Games"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-game-info": {
+      "post": {
+        "description": "Get game info",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "ID of the game",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "description": {
+                  "type": "null"
+                },
+                "UserID": {
+                  "type": "integer"
+                },
+                "FirstName": {
+                  "type": "string"
+                },
+                "LastName": {
+                  "type": "string"
+                },
+                "PictureURL": {
+                  "type": "string"
+                },
+                "GameID": {
+                  "type": "integer"
+                },
+                "Latitude": {
+                  "type": "integer"
+                },
+                "Longitude": {
+                  "type": "integer"
+                },
+                "HasTransport": {
+                  "type": "integer"
+                },
+                "GameTime": {
+                  "type": "integer"
+                },
+                "TimeCreated": {
+                  "type": "integer"
+                },
+                "Distance": {
+                  "type": "number"
+                },
+                "MeetingPlace": {
+                  "type": "string"
+                },
+                "IsCustomVenue": {
+                  "type": "integer"
+                },
+                "ApplicationType": {
+                  "type": "integer"
+                },
+                "MaxPlayers": {
+                  "type": "integer"
+                },
+                "PlayersJoined": {
+                  "type": "integer"
+                },
+                "SurfaceType": {
+                  "type": "integer"
+                },
+                "AvgAbility": {
+                  "type": "integer"
+                },
+                "AvgAge": {
+                  "type": "integer"
+                },
+                "Cost": {
+                  "type": "integer"
+                },
+                "ShinPads": {
+                  "type": "integer"
+                },
+                "Venue": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "success",
+                "description",
+                "UserID",
+                "FirstName",
+                "LastName",
+                "PictureURL",
+                "GameID",
+                "Latitude",
+                "Longitude",
+                "HasTransport",
+                "GameTime",
+                "TimeCreated",
+                "Distance",
+                "MeetingPlace",
+                "IsCustomVenue",
+                "ApplicationType",
+                "MaxPlayers",
+                "PlayersJoined",
+                "SurfaceType",
+                "AvgAbility",
+                "AvgAge",
+                "Cost",
+                "ShinPads",
+                "Venue"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-game-accepted-players": {
+      "post": {
+        "description": "Get game accepted by players",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "ID of the game",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Players": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "UserID": {
+                        "type": "integer"
+                      },
+                      "FirstName": {
+                        "type": "string"
+                      },
+                      "LastName": {
+                        "type": "string"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "UserID",
+                      "FirstName",
+                      "LastName",
+                      "PictureURL"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Players"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/leave-game": {
+      "post": {
+        "description": "Leave a game the user has been accepted into",
+        "parameters": [{
+          "name": "GameID",
+          "in": "formData",
+          "description": "ID of the game",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/notifications/get-all": {
+      "post": {
+        "description": "Get all notifications",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Notifications": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "ID": {
+                        "type": "integer"
+                      },
+                      "userID": {
+                        "type": "integer"
+                      },
+                      "type": {
+                        "type": "integer"
+                      },
+                      "timestamp": {
+                        "type": "integer"
+                      },
+                      "data": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "ID",
+                      "userID",
+                      "type",
+                      "timestamp",
+                      "data"
+                    ]
+                  }
+                },
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "Notifications",
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/teams/create": {
+      "post": {
+        "description": "create a team",
+        "parameters": [{
+          "name": "Name",
+          "in": "formData",
+          "description": "Name of team to create",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "TeamID": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "success",
+                "TeamID"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-own-teams": {
+      "post": {
+        "description": "Get owned teams of user",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Teams": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "TeamId": {
+                        "type": "integer"
+                      },
+                      "TeamName": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "TeamId",
+                      "TeamName"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Teams"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-teams": {
+      "post": {
+        "description": "Get the teams you BELONG to, but do not own.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Teams": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "TeamId": {
+                        "type": "integer"
+                      },
+                      "TeamName": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "TeamId",
+                      "TeamName"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Teams"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-associated-teams": {
+      "post": {
+        "description": "Get the teams user is associated with.",
+        "parameters": [{
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Teams": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "TeamId": {
+                        "type": "integer"
+                      },
+                      "TeamName": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "TeamId",
+                      "TeamName"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Teams"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/invite-to-team": {
+      "post": {
+        "description": "Invite a user to team.",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "UserIDs",
+          "in": "formData",
+          "description": "Array of users to invite to team",
+          "required": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/respond-to-team-invite": {
+      "post": {
+        "description": "Respond to team invite",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Response",
+          "in": "formData",
+          "description": "0: reject, 1: accept",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/remove-from-team": {
+      "post": {
+        "description": "Remove a user from team",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-team-playesr": {
+      "post": {
+        "description": "Get team players",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Players": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "UserID": {
+                        "type": "integer"
+                      },
+                      "PositionID": {
+                        "type": "integer"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      },
+                      "Confirmed": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "UserID",
+                      "PositionID",
+                      "PictureURL",
+                      "Confirmed"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Players"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-confirmed-team-players": {
+      "post": {
+        "description": "Get all invited players who have not already accepted their invite to the team.",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Players": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "UserID": {
+                        "type": "integer"
+                      },
+                      "PositionID": {
+                        "type": "integer"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      },
+                      "Confirmed": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "UserID",
+                      "PositionID",
+                      "PictureURL",
+                      "Confirmed"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Players"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/change-team-player-positions": {
+      "post": {
+        "description": "Change positions of users if the logged in user is the team owner.",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Positions",
+          "in": "formData",
+          "description": "JSON array of a player",
+          "required": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/change-team-name": {
+      "post": {
+        "description": "Change team name.",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "TeamName",
+          "in": "formData",
+          "description": "Name of team",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-team": {
+      "post": {
+        "description": "Get team.",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer"
+                },
+                "Team": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "TeamName": {
+                        "type": "string"
+                      },
+                      "Owner": {
+                        "type": "integer"
+                      },
+                      "Players": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "UserID": {
+                              "type": "integer"
+                            },
+                            "PositionID": {
+                              "type": "integer"
+                            },
+                            "PictureURL": {
+                              "type": "string"
+                            },
+                            "Confirmed": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "UserID",
+                            "PositionID",
+                            "PictureURL",
+                            "Confirmed"
+                          ]
+                        }
+                      },
+                      "Lat": {
+                        "type": "number"
+                      },
+                      "Lon": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "TeamName",
+                      "Owner",
+                      "Players",
+                      "Lat",
+                      "Lon"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "success",
+                "Team"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-team-finances": {
+      "post": {
+        "description": "Get team finances",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Team": {
+                  "type": "object",
+                  "properties": {
+                    "TeamID": {
+                      "type": "integer"
+                    },
+                    "TeamName": {
+                      "type": "string"
+                    },
+                    "Owner": {
+                      "type": "integer"
+                    },
+                    "Lat": {
+                      "type": "number"
+                    },
+                    "Lon": {
+                      "type": "number"
+                    },
+                    "Players": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "UserID": {
+                            "type": "integer"
+                          },
+                          "TeamID": {
+                            "type": "integer"
+                          },
+                          "PositionID": {
+                            "type": "integer"
+                          },
+                          "PictureURL": {
+                            "type": "string"
+                          },
+                          "Confirmed": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "UserID",
+                          "TeamID",
+                          "PositionID",
+                          "PictureURL",
+                          "Confirmed"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "TeamID",
+                    "TeamName",
+                    "Owner",
+                    "Lat",
+                    "Lon",
+                    "Players"
+                  ]
+                },
+                "success": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "Team",
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/leave-team": {
+      "post": {
+        "description": "Leave a team",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/change-team-location": {
+      "post": {
+        "description": "Change team location",
+        "parameters": [{
+          "name": "TeamID",
+          "in": "formData",
+          "description": "ID of team",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Lat",
+          "in": "formData",
+          "description": "Latidute",
+          "required": true,
+          "type": "number",
+          "format": "double"
+        }, {
+          "name": "Lon",
+          "in": "formData",
+          "description": "Longitude",
+          "required": true,
+          "type": "number",
+          "format": "double"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-user-followers": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Get followers of user.",
+        "parameters": [{
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Followers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "UserID": {
+                        "type": "integer"
+                      },
+                      "FirstName": {
+                        "type": "string"
+                      },
+                      "LastName": {
+                        "type": "string"
+                      },
+                      "PictureURL": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "UserID",
+                      "FirstName",
+                      "LastName",
+                      "PictureURL"
+                    ]
+                  }
+                },
+                "success": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "Followers",
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/follow-user": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Follow a user.",
+        "parameters": [{
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/unfollow-use": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Follow a user.",
+        "parameters": [{
+          "name": "UserID",
+          "in": "formData",
+          "description": "ID of user",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-chat-session": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Get chat session.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "ApplicationID": {
+                  "type": "integer"
+                },
+                "Token": {
+                  "type": "string"
+                },
+                "Success": {
+                  "type": "integer"
+                },
+                "Description": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "ApplicationID",
+                "Token",
+                "Success",
+                "Description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/get-posts": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Get post of user.",
+        "parameters": [{
+          "name": "PostParentID",
+          "in": "formData",
+          "description": "ID of post parent (id of user/team)",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "PostParentType",
+          "in": "formData",
+          "description": "Type of post parent: user or team",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Post": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "datetime": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "Description": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "numberOfLikes": {
+                      "type": "integer"
+                    },
+                    "likedByCurrentUser": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "currentUser": {
+                          "type": "boolean"
+                        },
+                        "PictureUrl": {
+                          "type": "string"
+                        },
+                        "FirstName": {
+                          "type": "string"
+                        },
+                        "LastName": {
+                          "type": "string"
+                        },
+                        "gender": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "currentUser",
+                        "PictureUrl",
+                        "FirstName",
+                        "LastName",
+                        "gender"
+                      ]
+                    },
+                    "comments": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "type",
+                    "datetime",
+                    "timestamp",
+                    "Description",
+                    "content",
+                    "numberOfLikes",
+                    "likedByCurrentUser",
+                    "user",
+                    "comments"
+                  ]
+                },
+                "Success": {
+                  "type": "integer"
+                },
+                "Description": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "Post",
+                "Success",
+                "Description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/create": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Create post",
+        "parameters": [{
+          "name": "PostParentID",
+          "in": "formData",
+          "description": "ID of post parent (id of user/team)",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "PostParentType",
+          "in": "formData",
+          "description": "Type of post parent: user or team",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "PostTitle",
+          "in": "formData",
+          "description": "Title of post",
+          "required": false,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "PostContent",
+          "in": "formData",
+          "description": "Content of post",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }, {
+          "name": "PostType",
+          "in": "formData",
+          "description": "Type of post: status or photo",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "PostParentID": {
+                  "type": "integer"
+                },
+                "PostParentType": {
+                  "type": "string"
+                },
+                "PostTitle": {
+                  "type": "string"
+                },
+                "PostContent": {
+                  "type": "string"
+                },
+                "PostType": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "PostParentID",
+                "PostParentType",
+                "PostTitle",
+                "PostContent",
+                "PostType"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/like-post": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Like a post",
+        "parameters": [{
+          "name": "PostID",
+          "in": "formData",
+          "description": "ID of post",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/unlike-post": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "unlike a post",
+        "parameters": [{
+          "name": "PostID",
+          "in": "formData",
+          "description": "ID of post",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                }
+              },
+              "required": [
+                "success"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/post-comment": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Post a comment to a post",
+        "parameters": [{
+          "name": "PostID",
+          "in": "formData",
+          "description": "ID of post",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "ParentID",
+          "in": "formData",
+          "description": "ID of parent",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }, {
+          "name": "Content",
+          "in": "formData",
+          "description": "Comment",
+          "required": true,
+          "type": "string",
+          "format": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Comment": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "datetime": {
+                      "type": "string"
+                    },
+                    "reply": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "numberOfLikes": {
+                      "type": "integer"
+                    },
+                    "likedByCurrentUser": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "currentUser": {
+                          "type": "boolean"
+                        },
+                        "PictureUrl": {
+                          "type": "string"
+                        },
+                        "FirstName": {
+                          "type": "string"
+                        },
+                        "LastName": {
+                          "type": "string"
+                        },
+                        "gender": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "currentUser",
+                        "PictureUrl",
+                        "FirstName",
+                        "LastName",
+                        "gender"
+                      ]
+                    },
+                    "datetimeAgo": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "text",
+                    "datetime",
+                    "reply",
+                    "numberOfLikes",
+                    "likedByCurrentUser",
+                    "user",
+                    "datetimeAgo"
+                  ]
+                },
+                "Success": {
+                  "type": "integer"
+                },
+                "Description": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "Comment",
+                "Success",
+                "Description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/like-comment": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Like a comment",
+        "parameters": [{
+          "name": "CommentID",
+          "in": "formData",
+          "description": "ID of comment",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Description": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "success",
+                "Description"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/unlike-comment": {
+      "security": [{
+        "LoginToken": []
+      }],
+      "post": {
+        "description": "Unlike a comment",
+        "parameters": [{
+          "name": "CommentID",
+          "in": "formData",
+          "description": "ID of comment",
+          "required": true,
+          "type": "number",
+          "format": "integer"
+        }],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "integer",
+                  "description": "0: success, 1: server error"
+                },
+                "Description": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "success",
+                "Description"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

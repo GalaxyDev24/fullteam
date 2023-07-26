@@ -1,0 +1,26 @@
+<h1 id="nameheader"></h1>
+<h2> - Vendor Articles - </h2>
+<ul id="articlelist">
+</ul>
+
+<button type="Button" onclick="editVendorController.createArticleEv()">Create Article</button>
+
+<div class="spacer10em"></div>
+<hr>
+
+<h2> - Edit Vendor - </h2>
+<form onsubmit="editVendorController.formSubmitEv()">
+  <input type="text" 
+         id="name" 
+         placeholder="Vendor Name" 
+         onchange="editVendorController.nameEdited()"/>
+  </br>
+
+  <label for="vendorpicture">Picture:</label>
+  <input type="file" 
+         id="vendorpicture" 
+         onchange="editVendorController.previewFile()"/>
+
+  <img id="vendorpicturepreview" height="200"></br>
+  <input type="submit" id="submit" value="Apply"/></br>
+</form>

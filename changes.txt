@@ -1,0 +1,7 @@
+Register request, added new params
+
+Get profile request, changed response (Position -> Positions)
+
+GAME_APPLICATION_OBJECT changes Position to Positions
+
+Added Age field to search players

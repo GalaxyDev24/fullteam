@@ -1,0 +1,18 @@
+<form onsubmit="editArticleController.formSubmitEv()" >
+  <input type="text" 
+         id="title" 
+         placeholder="Article Title" 
+         onchange="editArticleController.onTitleChangeEv()"/>
+  </br>
+  <textarea id="body" 
+            placeholder="Article body here..." 
+            onchange="editArticleController.onBodyChangeEv()"></textarea>
+  </br>
+
+  <label for="articlepicturepreview">Picture:</label>
+  <input type="file" id="articlepicture" onchange="editArticleController.previewFile()"/></br>
+  <img id="articlepicturepreview" height="200"></br>
+  <input type="submit" id="submit" value="Apply"/></br>
+</form>
+
+

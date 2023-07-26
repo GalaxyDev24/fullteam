@@ -1,0 +1,15 @@
+# Notes to umar:
+
+* /get-own-teams, /get-teams, /get-associated teams return data format needs to be unified
+
+* Sign up with facebook, some facebook users don't have an email - need to change login flow.
+
+* Forgot Password - Email doesn't come through. Was working previously -
+  probably a server config issue? 
+  Note: Luke tested recently and said it was working from the web app.
+
+* Update player position - there is no way to do this.
+
+# Notes to web dev:
+
+* Privacy policy should be viewable without being logged in.
