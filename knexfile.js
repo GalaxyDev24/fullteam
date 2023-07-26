@@ -5,10 +5,10 @@ module.exports = {
     test: {
         client: 'mysql',
         connection: {
-            host: 'full-team.ceamulusivas.eu-west-2.rds.amazonaws.com',
+            host: 'fullteamfootball.ceamulusivas.eu-west-2.rds.amazonaws.com',
             database: 'fullteam',
             user: 'root',
-            password: '',
+            password: 'Hello123!!!',
             charset: 'utf8'
         },
         migrations: {
@@ -23,10 +23,10 @@ module.exports = {
     development: {
         client: 'mysql',
         connection: {
-            host: 'full-team.ceamulusivas.eu-west-2.rds.amazonaws.com',
+            host: 'fullteamfootball.ceamulusivas.eu-west-2.rds.amazonaws.com',
             database: 'fullteam',
             user: 'root',
-            password: '',
+            password: 'Hello123!!!',
         },
         pool: {
             min: 2,
@@ -44,10 +44,10 @@ module.exports = {
     production: {
         client: 'mysql',
         connection: {
-            host: 'full-team.ceamulusivas.eu-west-2.rds.amazonaws.com',
+            host: 'fullteamfootball.ceamulusivas.eu-west-2.rds.amazonaws.com',
             database: 'fullteam',
             user: 'root',
-            password: '',
+            password: 'Hello123!!!',
             charset: 'utf8'
         },
         pool: {
