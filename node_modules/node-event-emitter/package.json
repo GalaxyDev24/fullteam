@@ -1,0 +1,49 @@
+{
+    "name": "node-event-emitter"
+  , "version": "0.0.1"
+  , "description": "Direct port of node's EventEmitter with no dependencies. Available for CommonJS and browser environments."
+  , "author": "benjreinhart"
+  , "engines":
+    {
+      "node": "*"
+    }
+
+  , "keywords":
+    [
+        "browser"
+      , "event"
+      , "events"
+      , "eventemitter"
+      , "emitter"
+      , "node"
+    ]
+
+  , "dependencies":
+    {
+    }
+
+  , "devDependencies":
+    {
+        "chai": "~1.9"
+      , "commonjs-everywhere": "~0.9"
+      , "mocha": "~1.18"
+      , "sinon": "~1.9"
+    }
+
+  , "repository":
+    {
+        "type" : "git"
+      , "url"  : "git@github.com:benjreinhart/node-event-emitter.git"
+    }
+
+  , "bugs":
+    {
+        "url": "https://github.com/benjreinhart/node-event-emitter/issues"
+    }
+
+  , "main": "index.js"
+
+  , "homepage": "https://github.com/benjreinhart/node-event-emitter"
+
+  , "license": "MIT"
+}
