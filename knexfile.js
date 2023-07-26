@@ -5,7 +5,7 @@ module.exports = {
     test: {
         client: 'mysql',
         connection: {
-            host: '127.0.0.1',
+            host: 'full-team.ceamulusivas.eu-west-2.rds.amazonaws.com',
             database: 'fullteam',
             user: 'root',
             password: '',
@@ -23,7 +23,7 @@ module.exports = {
     development: {
         client: 'mysql',
         connection: {
-            host: '127.0.0.1',
+            host: 'full-team.ceamulusivas.eu-west-2.rds.amazonaws.com',
             database: 'fullteam',
             user: 'root',
             password: '',
@@ -44,7 +44,7 @@ module.exports = {
     production: {
         client: 'mysql',
         connection: {
-            host: '127.0.0.1',
+            host: 'full-team.ceamulusivas.eu-west-2.rds.amazonaws.com',
             database: 'fullteam',
             user: 'root',
             password: '',
